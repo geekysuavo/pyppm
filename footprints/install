@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ ! -d /usr/share/pcb/newlib/sockets ]; then
+  sudo install -v -d -m 755 -o root -g root /usr/share/pcb/newlib/sockets
+fi
+
+for f in $(find * -type f); do
+  if [ "${f}" == "install" ]; then continue; fi
+  sudo install -v -m 644 -o root -g root ${f} \
+    /usr/share/pcb/newlib/sockets/$(basename ${f} .fp)
+done
+sync
+

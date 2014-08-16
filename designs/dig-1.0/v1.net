@@ -1,0 +1,18 @@
+unnamed_net16	L1-2 C12-2 C11-1 U3-1 
+unnamed_net15	J2-1 U3-3 
+unnamed_net14	U3-6 R7-1 U1-18 
+unnamed_net13	U3-5 U1-17 
+unnamed_net12	U3-4 U1-15 
+unnamed_net11	S2-1 R6-2 
+unnamed_net10	S1-1 R4-2 
+unnamed_net9	R1-1 J1-3 
+unnamed_net8	R2-1 J1-2 
+unnamed_net7	R2-2 U1-30 
+unnamed_net6	R1-2 U1-29 
+unnamed_net5	R5-1 C10-2 D2-2 R6-1 U1-13 
++5V	L1-1 R7-2 R5-2 D2-1 R3-2 D1-1 C5-1 C4-1 C3-1 C1-1 C2-2 J1-1 U1-31 U1-4 U1-32 
+GND	J2-2 C11-2 C12-1 U3-2 S2-2 C10-1 S1-2 C9-1 C8-1 C7-1 C4-2 C3-2 C5-2 C1-2 C2-1 C6-1 J1-5 U1-28 U1-3 
+unnamed_net4	C6-2 U1-27 
+unnamed_net3	U2-2 C8-2 U1-2 
+unnamed_net2	U2-1 C7-2 U1-1 
+unnamed_net1	R3-1 C9-2 D1-2 R4-1 U1-24 

@@ -1,0 +1,16 @@
+unnamed_net13	Cd2-1 Rd2-2 Rd1-2 Cd1-1 
+unnamed_net12	J2-1 Cd2-2 Rd3-2 U1-14 
+unnamed_net11	Rd3-1 Cd1-2 U1-13 
+unnamed_net10	Cc2-1 Rc2-2 Rc1-2 Cc1-1 
+unnamed_net9	Rd1-1 Cc2-2 Rc3-2 U1-8 
+unnamed_net8	Rc3-1 Cc1-2 U1-9 
+unnamed_net7	Cb2-1 Rb2-2 Rb1-2 Cb1-1 
+unnamed_net6	Rc1-1 Cb2-2 Rb3-2 U1-7 
+unnamed_net5	Rb3-1 Cb1-2 U1-6 
+unnamed_net4	J1-1 Ra1-1 
+unnamed_net3	Ca2-1 Ra2-2 Ra1-2 Ca1-1 
++5V	C3-1 C1-2 J3-1 U1-4 
+-5V	C4-2 C2-1 J4-2 U1-11 
+unnamed_net2	Rb1-1 Ca2-2 Ra3-2 U1-1 
+unnamed_net1	Ra3-1 Ca1-2 U1-2 
+GND	C4-1 C3-2 C2-2 C1-1 J4-1 J3-2 J2-2 Rd2-1 U1-12 Rc2-1 U1-10 Rb2-1 U1-5 J1-2 Ra2-1 U1-3 

@@ -1,0 +1,12 @@
+unnamed_net9	R102-1 L102-2 
+unnamed_net8	R101-1 L101-2 
+unnamed_net7	C104-1 U101-2 
+unnamed_net6	C104-2 U101-3 
+-5V	J3-3 C306-2 C305-1 U101-5 
++5V	J3-1 C302-1 C301-2 U101-8 
+unnamed_net5	D101-1 D102-2 R104-2 C102-1 C103-2 R102-2 U101-1 
+unnamed_net4	D102-1 D101-2 R103-1 C102-2 C101-1 R101-2 U101-4 
+unnamed_net3	U101-7 J2-1 
+GND	J3-2 C306-1 C302-2 C305-2 C301-1 R104-1 R103-2 C103-1 C101-2 U101-6 J2-2 
+unnamed_net2	L101-1 J1-1 
+unnamed_net1	L102-1 J1-2 

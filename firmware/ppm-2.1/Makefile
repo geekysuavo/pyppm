@@ -1,0 +1,15 @@
+# Makefile: all compilation and programming parameters for PPM firmware
+
+# define the project base filename
+PROJ=ppm
+
+# list object files to be compiled into the project
+OBJECTS=tcnt.o gpio.o spi.o ppm.o main.o
+COREOBJ=clk.o usb.o
+
+# include all software-global make rules.
+include ../global.mk
+
+# change the target microcontroller.
+MCU=atmega32u4
+

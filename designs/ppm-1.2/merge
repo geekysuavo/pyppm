@@ -1,0 +1,41 @@
+#!/bin/bash
+
+blacklist="R31 R32 R33"
+
+f_new="v1.pcb"
+f_old="../ppm-1.1/v1.pcb"
+
+n_new=$(wc -l < $f_new)
+n_old=$(wc -l < $f_old)
+
+for el in $(awk '/^Element/{print$3}' $f_new | sed -e 's@"@@g' | sort); do
+  if [ ! "$(echo ${blacklist} | grep ${el})" == "" ]; then
+    continue
+  fi
+  n1_new=$(awk "/^Element/&&\$3==\"\\\"${el}\\\"\"{print NR}" $f_new)
+  n1_old=$(awk "/^Element/&&\$3==\"\\\"${el}\\\"\"{print NR}" $f_old)
+  for n in $(seq $n1_new $n_new); do
+    if [ "$(awk -v l=$n 'NR==l&&$0=="\t)"{print "1"}' $f_new)" == "1" ]; then
+      n2_new=$n
+      break
+    fi
+  done
+  for n in $(seq $n1_old $n_old); do
+    if [ "$(awk -v l=$n 'NR==l&&$0=="\t)"{print "1"}' $f_old)" == "1" ]; then
+      n2_old=$n
+      break
+    fi
+  done
+  if [ ! "${n1_new}" == "" -a ! "${n2_new}" == "" \
+    -a ! "${n1_old}" == "" -a ! "${n2_old}" == "" ]; then
+    d_new=$(echo "${n2_new}-${n1_new}+1" | bc -l)
+    d_old=$(echo "${n2_old}-${n1_old}+1" | bc -l)
+    if [ "${d_new}" == "${d_old}" ]; then
+      sed -n "1,$(expr ${n1_new} - 1)p" $f_new > TMP
+      sed -n "${n1_old},${n2_old}p" $f_old >> TMP
+      sed -n "$(expr ${n2_new} + 1),${n_new}p" $f_new >> TMP
+      mv TMP $f_new
+    fi
+  fi
+done
+
