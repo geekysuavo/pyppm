@@ -1,0 +1,34 @@
+* opamp-servoed pulsed dc constant current sink
+*
+* include required spice models
+.include ../../models/irlr024n.mod
+.include ../../models/ad8591.mod
+.include ../../models/ad8541.mod
+*
+* usb bus voltage, battery voltage and setpoint voltage
+Vdc bus 0 dc 5.0
+Vin set 0 pulse(0v %%SETPOINT%%mv 20m 1u 1u 10m 20m)
+Vbat bat 0 dc 15.0
+*
+* output load resistor
+Rload bat drain 1
+*
+* opamp input voltage divider, approximates A=0.4
+Rdiv1 set div 100k
+Rdiv2 div 0 25k
+*
+* mosfet-buffered opamp current sink subcircuit
+Xopa div sense bus 0 opout ad8541
+Rgate opout gate 100
+Xfet drain gate sense irlr024n
+Lsense sense senseB 100n
+Rsense senseB 0 0.5
+Ccomp opout sense 10n
+*
+* output analyses
+.tran 1u 40m 10m 1u
+.ac dec 40 1 10meg
+*
+* finish up
+.end
+*

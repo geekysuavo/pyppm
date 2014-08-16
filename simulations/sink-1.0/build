@@ -1,0 +1,61 @@
+#!/bin/bash
+
+set_start=100
+set_end=5000
+set_step=500
+
+rm -f sink-lin.txt
+
+if [ -e sink-tran.tar.gz ]; then
+  tar xf sink-tran.tar.gz && rm -f sink-tran.tar.gz
+fi
+
+if [ -e sink-hist.tar.gz ]; then
+  tar xf sink-hist.tar.gz && rm -f sink-hist.tar.gz
+fi
+
+for setpt in $(seq ${set_start} ${set_step} ${set_end}); do
+  cat > sink.nut << EOF
+set nobreak=1
+set width=1000
+setplot tran1
+print time,mag(sense) > sink-tran-${setpt}.txt
+quit
+EOF
+
+  cat > sink.m << EOF
+x = load('sink-tran-${setpt}.txt');
+t = x(:,1);
+v = x(:,2);
+[nn,xx] = hist(v,500);
+idx = find(xx > 0.002);
+xx = xx(idx);
+nn = nn(idx);
+val = xx(find(nn == max(nn)));
+dataout = [xx; nn]';
+save('-ascii','sink-hist-${setpt}.txt','dataout');
+printf('%e %e\n',${setpt}/1000,val/0.5);
+EOF
+
+  sed -e "s@%%SETPOINT%%@${setpt}@" sink.spi.in > sink.spi
+
+  if [ ! -e sink-tran-${setpt}.txt -a ! -e sink-hist-${setpt}.txt ]; then
+    ngspice -b sink.spi -r sink.raw
+    ngnutmeg sink.raw < sink.nut
+
+    awk '/^[0-9]/{print$2,$3}' sink-tran-${setpt}.txt > tmp && \
+      mv tmp sink-tran-${setpt}.txt
+  fi
+
+  octave -q sink.m >> sink-lin.txt
+
+  rm -f sink.nut sink.m sink.spi sink.raw
+done
+
+gnuplot sink.plt
+
+tar cf sink-tran.tar sink-tran-*.txt && gzip -f9 sink-tran.tar
+tar cf sink-hist.tar sink-hist-*.txt && gzip -f9 sink-hist.tar
+
+rm -f sink-tran-*.txt sink-hist-*.txt sink-lin.txt
+

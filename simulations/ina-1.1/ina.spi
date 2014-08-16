@@ -1,0 +1,17 @@
+* ina-1.1: low-noise instrumentation preamplifier
+*
+* included models:
+.include ../../models/mmz2012r300a.mod
+.include ../../models/sd101a.mod
+.include ../../models/ad8428.mod
+*
+* included netlists:
+.include ina.net
+*
+* simulation statements:
+.ac dec 500 1 10e6
+.tran 10u 22m 2m 10u
+*
+* wrap-up:
+.end
+*

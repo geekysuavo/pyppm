@@ -1,0 +1,12 @@
+*
+* voltage sources:
+Vdc batt 0 12
+Vin g 0 pulse(0v 12v 0 10n 10n 10m 100m)
+*
+Rload batt l 6.0
+Lload l d 10m
+*
+Xfet d g 0 irlr024n
+**Dfly d batt mur860
+**Cd d 0 1u
+*

@@ -1,0 +1,23 @@
+*
+* voltage sources:
+Vdcpos vpos 0 5
+Vdcneg 0 vneg 5
+Vinput inpos inneg dc 0 ac 1u sin(0 1u 1k)
+*
+* input filter section:
+XlinA inpos ip1 mmz2012r300a
+XlinB inneg in1 mmz2012r300a
+RinA ip1 ip2 49.9
+RinB in1 in2 49.9
+CinA ip2 0 10n
+CinB in2 0 10n
+Cindiff ip2 in2 100n
+XddiffA ip2 in2 sd101a
+XddiffB in2 ip2 sd101a
+RgndretC ip2 0 1meg
+RgndretD in2 0 1meg
+*
+* instrumentation amplifier:
+Xina in2 ip2 vneg 0 out vpos ad8428
+Rload out 0 1k
+*

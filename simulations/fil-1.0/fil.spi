@@ -1,0 +1,15 @@
+* fil-1.0: chebyshev active bandpass filter.
+*
+* included models:
+.include ../../models/op162.mod
+*
+* included netlists:
+.include fil.net
+*
+* simulation statements:
+.ac dec 500 1 10e6
+.tran 10u 22m 2m 10u
+*
+* wrap-up:
+.end
+*

@@ -1,0 +1,15 @@
+* asc-1.0: complete analog signal chain for ppm design.
+*
+* included models:
+.include ../../models/irlr024n.mod
+.include ../../models/mur860.mod
+*
+* included netlists:
+.include sink.net
+*
+* simulation statements:
+.tran 10u 200m 2m 10u
+*
+* wrap-up:
+.end
+*

@@ -1,0 +1,15 @@
+* osc-1.0: 1khz low-voltage test oscillator
+*
+* included models:
+.include ../../models/lt1012.mod
+.include ../../models/1n4148.mod
+*
+* included netlists:
+.include osc.net
+*
+* simulation statements:
+.tran 10u 500m 300m 10u
+*
+* wrap-up:
+.end
+*

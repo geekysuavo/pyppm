@@ -1,0 +1,31 @@
+*
+* voltage sources:
+Vdc vpos 0 9
+*
+* oscillator:
+Xop1 voap voan vpos 0 hvout lt1012
+*
+* positive feedback network:
+Rp1 vpos voap 10k
+Rp2 voap 0 10k
+Rpfb hvout voap 470k
+*
+* negative feedback sub-network a:
+Xd1 hvout na 1n4148
+Xd2 na hvout 1n4148
+Ra1 na voan 470k
+*
+* negative feedback sub-network b:
+Rb1 hvout nb 33k
+Rb2 nb voan 33k
+Cb1 nb 0 10n
+*
+* negative feedback sub-network c:
+Cc1 hvout nc 4.7n
+Cc2 nc voan 4.7n
+Rc1 nc 0 15k
+*
+* final output voltage divider:
+Rdiv1 hvout out 1meg
+Rdiv2 out 0 10
+*

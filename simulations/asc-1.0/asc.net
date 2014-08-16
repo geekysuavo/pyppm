@@ -1,0 +1,71 @@
+*
+* voltage sources:
+Vdcpos vpos 0 5
+Vdcneg 0 vneg 5
+Vinput inpos inneg dc 0 ac 1u sin(0 1u 1k)
+*
+* input filter section:
+XlinA inpos ip1 mmz2012r300a
+XlinB inneg in1 mmz2012r300a
+RinA ip1 ip2 33.2
+RinB in1 in2 33.2
+CinA ip2 0 1n
+CinB in2 0 1n
+Cindiff ip2 in2 10n
+XddiffA ip2 in2 sd101a
+XddiffB in2 ip2 sd101a
+RgndretC ip2 0 1meg
+RgndretD in2 0 1meg
+*
+* instrumentation amplifier:
+Xina in2 ip2 vneg 0 inaout vpos ad8428
+*
+* inverting gain stage:
+Xpre prein prefb vpos vneg preout ad8597
+Chpf inaout prein 100n
+Rhpf prein 0 100k
+Rpre1 prefb 0 10
+Rpre2 prefb preout 1k
+*
+* filter block #1:
+Ra1 preout fa1 14.3k
+Ra2 fa1 0 15.4k
+Ra3 fa3 fa2 45.3k
+Ca1 fa1 fa2 10n
+Ca2 fa3 fa1 10n
+Xopa1 0 fa2 vpos vneg fa3 op162
+*
+* filter block #2:
+Rb1 fa3 fb1 5.49k
+Rb2 fb1 0 6.04k
+Rb3 fb3 fb2 17.4k
+Cb1 fb1 fb2 10n
+Cb2 fb3 fb1 10n
+Xopb1 0 fb2 vpos vneg fb3 op162
+*
+* filter block #3:
+Rc1 fb3 fc1 13.3k
+Rc2 fc1 0 5.23k
+Rc3 fc3 fc2 232k
+Cc1 fc1 fc2 10n
+Cc2 fc3 fc1 10n
+Xopc1 0 fc2 vpos vneg fc3 op162
+*
+* filter block #4:
+Rd1 fc3 fd1 2k
+Rd2 fd1 0 732
+Rd3 fout fd2 34.8k
+Cd1 fd1 fd2 10n
+Cd2 fout fd1 10n
+Xopd1 0 fd2 vpos vneg fout op162
+*
+* dc offset adjustment:
+Cdc fout dcout 100n
+Rdc1 vpos dcout 10k
+Rdc2 dcout 0 10k
+*
+* adc input driver:
+Xdrv dcout drvout vpos vneg drvout ada4841
+Rdrv drvout out 33
+Cdrv out 0 10n
+*
