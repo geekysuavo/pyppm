@@ -1,0 +1,10 @@
+#!/bin/bash
+
+prj=null
+ver=1
+rev=0
+
+source proj
+
+rm -f ${prj}.raw ${prj}-sim.txt ${prj}.png
+

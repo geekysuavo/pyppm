@@ -1,0 +1,53 @@
+#!/bin/bash
+
+prj=null
+ver=1
+rev=0
+
+source proj
+
+if [ ! -e ${prj}.raw ]; then
+  ngspice -b ${prj}.spi -r ${prj}.raw
+fi
+
+if [ ! -e ${prj}-sim.txt ]; then
+  ngnutmeg ${prj}.raw < ${prj}.nut
+
+  awk '/^[0-9]/' tmp > tmp2 && mv tmp2 tmp
+  f1=$(awk '/^\.ac/{print$4}' ${prj}.spi)
+  f2=$(awk '/^\.ac/{print$5}' ${prj}.spi)
+  n=$(wc -l < tmp)
+
+  if [ ! "${f1}" == "" -a ! "${f2}" == "" -a ! "${n}" == "" ]; then
+    cat | octave -qf > tmp2 << EOF
+idx=[0:(${n}-1)]';
+frq=logspace(log10(${f1}),log10(${f2}),${n})';
+for i = [1:${n}],
+ printf('%d %e\n',idx(i),frq(i));
+end
+EOF
+
+    join -j 1 tmp2 tmp > ${prj}-sim.txt
+    rm -f tmp*
+  else
+    cat | octave -qf > tmp2 << EOF
+x=load('tmp');
+t=x(:,2);
+s=x(:,3);
+n=length(s);
+dt=t(2)-t(1);
+fmin=1/(n*dt);
+fmax=1/dt;
+f=linspace(fmin,fmax,n)';
+S=20*log10(abs(fft(s.*blackman(length(s)))));
+out=[f(1:round(n/2)),S(1:round(n/2))];
+save -ascii '${prj}-sim.txt' out
+EOF
+    rm -f tmp*
+  fi
+fi
+
+if [ -e ${prj}-meas.txt -a ! -e ${prj}.png ]; then
+  gnuplot ${prj}.plt
+fi
+

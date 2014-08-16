@@ -1,0 +1,22 @@
+#!/bin/bash
+
+prj=null
+ver=1
+rev=0
+
+source proj
+
+echo -n "*** ARE YOU SURE YOU WANT TO WIPE THE CURRENT PCB??? [yes/NO] "
+read confirmation
+
+if [ ! "${confirmation}" == "yes" ]; then
+  echo "cancelling... later tater."
+  exit 0
+fi
+
+rm -f v${ver}.{cmd,net,pcb}
+gsch2pcb -d /usr/share/pcb/newlib -o v${ver} *.sch
+
+rm -f *~ *.log
+sync
+

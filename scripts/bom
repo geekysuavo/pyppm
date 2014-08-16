@@ -1,0 +1,23 @@
+#!/bin/bash
+
+prj=null
+ver=1
+rev=0
+
+source proj
+
+for partno in $(awk -F ',' 'NF==4{print$4}' ${prj}-bom.csv | sort -u); do
+  n=$(awk -F ',' -v pn="${partno}" \
+    'BEGIN{n=0}$4==pn{n++}END{print n}' \
+    ${prj}-bom.csv)
+  len=${#partno}
+  nsep=$(expr 40 - ${len})
+  sep=""
+  for i in $(seq 1 ${nsep}); do
+    sep="${sep} "
+  done
+  echo "${partno}${sep}${n}"
+done
+
+sync
+

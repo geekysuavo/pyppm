@@ -1,0 +1,35 @@
+#!/bin/bash
+
+prj=null
+ver=1
+rev=0
+
+source proj
+
+if [ "${1}" == "pcb" -o "${1}" == "board" ]; then
+  pcb v${ver}.pcb
+  rm -f v${ver}.pcb-
+
+  if [ ! "$(ls | grep -e \.cnc -e \.gbr)" == "" ]; then
+    install -d grb
+    rm -f ${prj}-v${ver}.zip
+    mv -f *.cnc *.gbr grb/
+    pushd grb >/dev/null
+    rm -vf v${ver}.fab.gbr v${ver}.*paste.gbr
+    zip -9 -l ../${prj}-v${ver}.zip *.cnc *.gbr
+    popd >/dev/null
+    rm -rf grb
+  fi
+
+  if [ -e v${ver}.ps ]; then
+    mv -f v${ver}.ps v${ver}-brd.ps
+    ps2pdf v${ver}-brd.ps
+    rm -f v${ver}-brd.ps
+  fi
+else
+  gschem -q *.sch
+  rm -f *~ *.log
+fi
+
+sync
+

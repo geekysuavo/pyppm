@@ -1,0 +1,25 @@
+#!/bin/bash
+
+prj=null
+ver=1
+rev=0
+
+source proj
+
+postscripts=""
+for schematic in *.sch; do
+  postscript="$(echo ${schematic} | sed -e 's/sch/ps/')"
+  rm -f ${postscript} $(basename ${postscript} .ps).pdf
+
+  gschem -q -p -o${postscript} -s/usr/share/gEDA/scheme/print.scm ${schematic}
+
+  postscripts="${postscripts} ${postscript}"
+done
+
+cat ${postscripts} > v${ver}r${rev}.ps
+sed -e "s/\(%%Title:\).*/\1 ${prj}v${ver}r${rev}/" -i v${ver}r${rev}.ps
+ps2pdf v${ver}r${rev}.ps
+
+rm -f *~ ${postscripts} v${ver}r${rev}.ps *.log
+sync
+
