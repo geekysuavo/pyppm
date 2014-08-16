@@ -1,0 +1,13 @@
+298.15    # temperature / K
+18        # wire gauge / AWG
+16.8n     # wire resistivity / ohm-m
+0.999994  # wire relative magnetic permeability
+5c        # coil diameter / m
+5c        # coil length / m
+750       # turns count
+700       # minimum frequency / Hz
+4k        # maximum frequency / Hz
+1.116     # filter bandwidth correction
+i         # polarization by voltage
+2         # coil current / A
+10        # polarization time / s
