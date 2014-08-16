@@ -1,0 +1,12 @@
+#!/bin/bash
+
+for d in $(find * -type d); do
+  pushd ${d} > /dev/null
+  for f in $(find * -type f); do
+    sudo install -v -m 644 -o root -g root ${f} \
+      /usr/share/gEDA/sym/${d}/
+  done
+  popd > /dev/null
+done
+sync
+

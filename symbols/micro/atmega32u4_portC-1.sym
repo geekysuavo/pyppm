@@ -1,0 +1,38 @@
+v 20110115 2
+T 700 500 9 12 1 1 90 0 1
+ATmega32U4
+T 300 5800 8 10 0 0 0 0 1
+description=USB AVR 8-bit Microcontroller
+T 300 5600 8 10 0 0 0 0 1
+footprint=TQFP44_10
+T 1400 2000 8 10 1 1 0 6 1
+refdes=U?
+T 300 6200 8 10 0 0 0 0 1
+numslots=0
+B 400 400 1100 1500 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
+T 300 6000 8 10 0 0 0 0 1
+device=ATmega32U4
+T 900 500 9 10 1 1 90 0 1
+PORTC
+P 1800 1000 1500 1000 1 0 0
+{
+T 1600 1050 5 8 1 1 0 0 1
+pinnumber=31
+T 1600 1150 5 8 0 1 0 2 1
+pinseq=31
+T 1450 1000 9 8 1 1 0 6 1
+pinlabel=PC6
+T 1450 1000 5 8 0 1 0 8 1
+pintype=io
+}
+P 1800 600 1500 600 1 0 0
+{
+T 1600 650 5 8 1 1 0 0 1
+pinnumber=32
+T 1600 750 5 8 0 1 0 2 1
+pinseq=32
+T 1450 600 9 8 1 1 0 6 1
+pinlabel=PC7
+T 1450 600 5 8 0 1 0 8 1
+pintype=io
+}

@@ -1,0 +1,102 @@
+v 20110115 2
+T 300 5800 8 10 0 0 0 0 1
+description=Micron Serial Flash Memory
+T 300 5600 8 10 0 0 0 0 1
+footprint=SO8
+T 1900 3600 8 10 1 1 0 6 1
+refdes=U?
+T 300 6200 8 10 0 0 0 0 1
+numslots=0
+P 2300 3000 2000 3000 1 0 0
+{
+T 2100 3050 5 8 1 1 0 0 1
+pinnumber=8
+T 2100 3150 5 8 0 1 0 2 1
+pinseq=8
+T 1950 3000 9 8 1 1 0 6 1
+pinlabel=VCC
+T 1950 3000 5 8 0 1 0 8 1
+pintype=pwr
+}
+P 200 2400 500 2400 1 0 0
+{
+T 400 2450 5 8 1 1 0 6 1
+pinnumber=1
+T 400 2550 5 8 0 1 0 8 1
+pinseq=1
+T 550 2400 9 8 1 1 0 0 1
+pinlabel=S#
+T 550 2400 5 8 0 1 0 2 1
+pintype=io
+}
+B 500 500 1500 2800 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
+T 300 6000 8 10 0 0 0 0 1
+device=M25PExx
+P 2300 1700 2000 1700 1 0 0
+{
+T 2100 1750 5 8 1 1 0 0 1
+pinnumber=4
+T 2100 1850 5 8 0 1 0 2 1
+pinseq=4
+T 1950 1700 9 8 1 1 0 6 1
+pinlabel=VSS
+T 1950 1700 5 8 0 1 0 8 1
+pintype=pwr
+}
+P 200 800 500 800 1 0 0
+{
+T 400 850 5 8 1 1 0 6 1
+pinnumber=7
+T 400 950 5 8 0 1 0 8 1
+pinseq=7
+T 550 800 9 8 1 1 0 0 1
+pinlabel=RST#
+T 550 800 5 8 0 1 0 2 1
+pintype=io
+}
+P 200 2700 500 2700 1 0 0
+{
+T 400 2750 5 8 1 1 0 6 1
+pinnumber=2
+T 400 2850 5 8 0 1 0 8 1
+pinseq=2
+T 550 2700 9 8 1 1 0 0 1
+pinlabel=DQ1
+T 550 2700 5 8 0 1 0 2 1
+pintype=io
+}
+P 200 2100 500 2100 1 0 0
+{
+T 400 2150 5 8 1 1 0 6 1
+pinnumber=6
+T 400 2250 5 8 0 1 0 8 1
+pinseq=6
+T 550 2100 9 8 1 1 0 0 1
+pinlabel=C
+T 550 2100 5 8 0 1 0 2 1
+pintype=io
+}
+P 200 1100 500 1100 1 0 0
+{
+T 400 1150 5 8 1 1 0 6 1
+pinnumber=3
+T 400 1250 5 8 0 1 0 8 1
+pinseq=3
+T 550 1100 9 8 1 1 0 0 1
+pinlabel=W#
+T 550 1100 5 8 0 1 0 2 1
+pintype=io
+}
+T 1900 3400 9 10 1 1 0 6 1
+M25PExx
+P 200 3000 500 3000 1 0 0
+{
+T 400 3050 5 8 1 1 0 6 1
+pinnumber=5
+T 400 3150 5 8 0 1 0 8 1
+pinseq=5
+T 550 3000 9 8 1 1 0 0 1
+pinlabel=DQ0
+T 550 3000 5 8 0 1 0 2 1
+pintype=io
+}
