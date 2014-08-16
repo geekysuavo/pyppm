@@ -1,0 +1,15 @@
+NOTES ABOUT THE DESIGN:
+=======================
+
+Layer Stackup:
+--------------
+#:  TYPE:      PCB NAME:     GBR NAME:
+1   Signals    Component     top
+2   GND        GND           group3
+3   +5V        Power         group4
+4   -5V        Solder        back
+
+Board Size:
+-----------
+4.720x3.935"
+
