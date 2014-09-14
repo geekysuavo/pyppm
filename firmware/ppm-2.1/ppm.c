@@ -103,29 +103,29 @@ void ppm_relay_enable (uint8_t en) {
 /* ppm_acquire: runs a single acquisition function. */
 #define ppm_acquire(n, ovf) \
   gpio_led_adc_on (); \
-  tcnt1_run_acquire ((n), (ovf)); \
+  //FIXME tcnt1_run_acquire ((n), (ovf)); \
   gpio_led_adc_off ();
 
 /* ppm_delay: runs a precision delay function. */
 #define ppm_delay(n) \
-  dac16 = tcnt0_run_interp ((n), dac16, 0x0000, 0x00);
+  //FIXME dac16 = tcnt0_run_interp ((n), dac16, 0x0000, 0x00);
 
 /* ppm_txrise: runs a polarization rising edge function. */
 #define ppm_txrise(n, a) \
   gpio_led_dac_on (); \
-  dac16 = tcnt0_run_interp ((n), dac16, (a), 0x01); \
+  //FIXME dac16 = tcnt0_run_interp ((n), dac16, (a), 0x01); \
   gpio_led_dac_off ();
 
 /* ppm_txfall: runs a polarization falling edge function. */
 #define ppm_txfall(n, a) \
   gpio_led_dac_on (); \
-  dac16 = tcnt0_run_interp ((n), dac16, (a), 0x02); \
+  //FIXME dac16 = tcnt0_run_interp ((n), dac16, (a), 0x02); \
   gpio_led_dac_off ();
 
 /* ppm_txpulse: runs a sinusoidal pulse synthesis function. */
 #define ppm_txpulse(n, f, a) \
   gpio_led_dac_on (); \
-  tcnt0_run_pulse((n), (f), (a)); \
+  //FIXME tcnt0_run_pulse((n), (f), (a)); \
   gpio_led_dac_off ();
 
 /* ppm_execute: runs the currently downloaded pulse program. */

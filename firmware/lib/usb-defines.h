@@ -141,6 +141,7 @@
  * m32u2 datasheet, sec 20.10.1, page 195.
  */
 #define usb_enable() \
+  UHWCON |= (1 << UVREGE); \
   USBCON |= (1 << USBE);
 
 /* usb_disable: disables the usb controller and the usb data buffers (D+, D-).

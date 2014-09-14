@@ -28,10 +28,8 @@ void clk_init (void) {
 
 /* pll_init: initialize the usb clock phase-locked loop. */
 void pll_init (void) {
-#ifndef _AVR_IOM32U4_H_
   /* configure the PLL prescaler to generate an 8.0 MHz clock. */
-  PLLCSR |= (1 << PLLP0);
-#endif
+  PLLCSR |= (1 << PINDIV);
 
   /* enable the PLL. */
   PLLCSR |= (1 << PLLE);

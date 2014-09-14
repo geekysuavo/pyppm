@@ -23,6 +23,11 @@
 #ifndef __PPM_CLK_H__
 #define __PPM_CLK_H__
 
+/* redefine the PINDIV bit in PLLCSR to match the m32u2 datasheet. */
+#ifndef _AVR_IOM32U4_H_
+#define PINDIV PLLP0
+#endif
+
 /* begin function declarations: */
 
 void clk_init (void);

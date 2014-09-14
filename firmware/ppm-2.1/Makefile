@@ -4,7 +4,8 @@
 PROJ=ppm
 
 # list object files to be compiled into the project
-OBJECTS=tcnt.o gpio.o spi.o ppm.o main.o
+#FIXME OBJECTS=tcnt.o gpio.o spi.o ppm.o main.o
+OBJECTS=gpio.o spi.o ppm.o main.o
 COREOBJ=clk.o usb.o
 
 # include all software-global make rules.

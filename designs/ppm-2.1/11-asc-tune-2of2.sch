@@ -123,7 +123,7 @@ symversion=0.1
 T 43800 43600 5 10 1 1 0 0 1
 value=220n
 T 43700 43300 5 10 0 0 0 0 1
-footprint=SMD_SIMPLE 80 50
+footprint=SMD_SIMPLE 120 60
 }
 C 44700 42600 1 90 0 capacitor-1.sym
 {

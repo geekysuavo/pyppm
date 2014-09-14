@@ -37,7 +37,7 @@ int main (void) {
    * interrupts, so no sei() statement is necessary after the init block.
    */
   clk_init ();
-  tcnt_init ();
+//FIXME  tcnt_init ();
   gpio_init ();
   spi_init ();
   usb_init ();
