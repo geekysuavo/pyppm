@@ -50,7 +50,9 @@ fairly extensive, a few custom device footprints had to be made to suit
 the more exotic/modern parts that went into PyPPM boards.
 
 ### Models
-FIXME
+
+The `models` directory holds all SPICE models used by simulations of PyPPM
+circuit behavior. To see the actual simulation files, look in `simulations`.
 
 ### Notes
 
