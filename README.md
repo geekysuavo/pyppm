@@ -70,7 +70,9 @@ FIXME
 FIXME
 
 ### Symbols
-FIXME
+
+The `symbols` directory holds all custom [gEDA gschem] (
+http://www.geda-project.org/) schematic symbols used in the PyPPM schematics.
 
 ## Licensing
 

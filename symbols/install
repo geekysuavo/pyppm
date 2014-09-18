@@ -1,12 +1,25 @@
 #!/bin/bash
 
+# set this to the path to the gEDA PCB main directory.
+GEDADIR=/usr/share/gEDA
+
+# loop through every directory in the current working directory.
 for d in $(find * -type d); do
+  # move into the currently indexed directory.
   pushd ${d} > /dev/null
+
+  # loop through every file in the current working directory. we will assume
+  # that every file on layer down is a symbol file.
   for f in $(find * -type f); do
+    # install the symbol file into its respective directory.
     sudo install -v -m 644 -o root -g root ${f} \
-      /usr/share/gEDA/sym/${d}/
+      ${GEDADIR}/sym/${d}/
   done
+
+  # move back to the toplevel directory.
   popd > /dev/null
 done
+
+# sync the filesystem with the disks.
 sync
 
