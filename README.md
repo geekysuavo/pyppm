@@ -1,4 +1,5 @@
-pyppm
-=====
+# PyPPM
 
-Open source Earth's Field NMR Spectrometer
+### An open source Earth's Field NMR Spectrometer
+
+Hello world.
