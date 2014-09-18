@@ -1,6 +1,6 @@
 # PyPPM
 
-An open source Earth's Field NMR Spectrometer
+An open source Earth's Field NMR Spectrometer.
 
 ## Introduction
 
@@ -33,15 +33,44 @@ PyPPM designs. The following sections break down exactly what you can expect
 to find in each subdirectory of the repo. Each subdirectory also contains it's
 own `README.md` file that provides further explication.
 
-### FIXME
+### Designs
+FIXME
+
+### Firmware
+FIXME
+
+### Footprints
+FIXME
+
+### Models
+FIXME
+
+### Notes
+
+The `notes` directory holds a few random jots of information that don't really
+fit into any of the other subdirectories, like recommended color schemes for
+Gerber rendering, _etc_.
+
+### Scripts
+FIXME
+
+### Simulations
+FIXME
+
+### Software
+FIXME
+
+### Symbols
+FIXME
 
 ## Licensing
 
 All software in the PyPPM project is released under the [GNU GPL 3.0] (
 http://www.gnu.org/copyleft/gpl.html), and all hardware designs (PCB and case
-designs) are released under the [Creative Commons Attribution Share-alike
-(CC-BY-SA 2.0)] (https://creativecommons.org/licenses/by-sa/2.0/).
+designs) are released under the [CC-BY-SA 2.0] (
+https://creativecommons.org/licenses/by-sa/2.0/).
 
 Enjoy!
+
 *~ Brad.*
 
