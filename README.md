@@ -66,7 +66,9 @@ Miscellaneous support scripts that I wrote to make my own life easier during
 PyPPM development are co-located in the `scripts` directory.
 
 ### Simulations
-FIXME
+
+The `simulations` directory contains all SPICE simulations I've made to analyze
+the behavior of subcircuit modules in PyPPM.
 
 ### Software
 FIXME
