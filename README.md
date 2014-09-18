@@ -34,13 +34,20 @@ to find in each subdirectory of the repo. Each subdirectory also contains it's
 own `README.md` file that provides further explication.
 
 ### Designs
-FIXME
+
+The `designs` directory holds hardware (schematic and printed circuit board),
+coil, and enclosure designs. Anything physically constructable is likely to
+have design files living in this subdirectory.
 
 ### Firmware
 FIXME
 
 ### Footprints
-FIXME
+
+The PyPPM project uses the [gEDA PCB] (http://pcb.geda-project.org/) design
+tool for all printed circuit boards. While the gEDA footprint library is
+fairly extensive, a few custom device footprints had to be made to suit
+the more exotic/modern parts that went into PyPPM boards.
 
 ### Models
 FIXME

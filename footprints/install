@@ -1,13 +1,21 @@
 #!/bin/bash
 
-if [ ! -d /usr/share/pcb/newlib/sockets ]; then
-  sudo install -v -d -m 755 -o root -g root /usr/share/pcb/newlib/sockets
+# set this to the path to the gEDA PCB main directory.
+PCBDIR=/usr/share/pcb
+
+# check if the sockets directory exists.
+if [ ! -d ${PCBDIR}/newlib/sockets ]; then
+  # it doesn't! create it before proceeding.
+  sudo install -v -d -m 755 -o root -g root ${PCBDIR}/newlib/sockets
 fi
 
-for f in $(find * -type f); do
-  if [ "${f}" == "install" ]; then continue; fi
+# loop through every file having a footprint extension.
+for f in $(find *.fp -type f); do
+  # as root, install the file into the newlib/sockets directory.
   sudo install -v -m 644 -o root -g root ${f} \
-    /usr/share/pcb/newlib/sockets/$(basename ${f} .fp)
+    ${PCBDIR}/newlib/sockets/$(basename ${f} .fp)
 done
+
+# sync the filesystem with the disks.
 sync
 
