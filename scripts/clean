@@ -1,10 +1,13 @@
 #!/bin/bash
 
+# define default project parameters.
 prj=null
 ver=1
 rev=0
 
+# source the project parameter file.
 source proj
 
+# clean up.
 rm -f ${prj}.raw ${prj}-sim.txt ${prj}.png
 

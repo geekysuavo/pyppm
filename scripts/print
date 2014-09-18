@@ -1,25 +1,38 @@
 #!/bin/bash
 
+
+# define default project parameters.
 prj=null
 ver=1
 rev=0
 
+# source the project parameter file.
 source proj
 
+# initialize the list of postscript files.
 postscripts=""
+
+# loop through each schematic file.
 for schematic in *.sch; do
+  # build the postscript filename.
   postscript="$(echo ${schematic} | sed -e 's/sch/ps/')"
   rm -f ${postscript} $(basename ${postscript} .ps).pdf
 
+  # print the schematic file to postscript.
   gschem -q -p -o${postscript} -s/usr/share/gEDA/scheme/print.scm ${schematic}
 
+  # add the postscript filename to the list of postscript files.
   postscripts="${postscripts} ${postscript}"
 done
 
+# join the postscript files together into a master file.
 cat ${postscripts} > v${ver}r${rev}.ps
+
+# convert the master file to a pdf.
 sed -e "s/\(%%Title:\).*/\1 ${prj}v${ver}r${rev}/" -i v${ver}r${rev}.ps
 ps2pdf v${ver}r${rev}.ps
 
+# clean up and sync.
 rm -f *~ ${postscripts} v${ver}r${rev}.ps *.log
 sync
 

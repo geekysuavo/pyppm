@@ -1,35 +1,59 @@
 #!/bin/bash
 
+# define default project parameters.
 prj=null
 ver=1
 rev=0
 
+# source the project parameter file.
 source proj
 
+# check if the use wants to edit the printed circuit board.
 if [ "${1}" == "pcb" -o "${1}" == "board" ]; then
+  # edit the printed circuit board.
   pcb v${ver}.pcb
+
+  # clean up when the user exits.
   rm -f v${ver}.pcb-
 
+  # check if gerber files were created.
   if [ ! "$(ls | grep -e \.cnc -e \.gbr)" == "" ]; then
+    # yes. create a gerber directory for zipping.
     install -d grb
+
+    # remove any current gerber files.
     rm -f ${prj}-v${ver}.zip
+
+    # move all generated gerber files into the zip directory.
     mv -f *.cnc *.gbr grb/
+
+    # move into the zip directory.
     pushd grb >/dev/null
+
+    # remove undesired files and zip the desired ones together.
     rm -vf v${ver}.fab.gbr v${ver}.*paste.gbr
     zip -9 -l ../${prj}-v${ver}.zip *.cnc *.gbr
+
+    # move out of the zip directory and clean up.
     popd >/dev/null
     rm -rf grb
   fi
 
+  # check if a postscript file was created.
   if [ -e v${ver}.ps ]; then
+    # yes. convert it to a pdf and clean up.
     mv -f v${ver}.ps v${ver}-brd.ps
     ps2pdf v${ver}-brd.ps
     rm -f v${ver}-brd.ps
   fi
 else
+  # edit the schematics.
   gschem -q *.sch
+
+  # clean up when the user exits.
   rm -f *~ *.log
 fi
 
+# sync the filesystem to the disks.
 sync
 

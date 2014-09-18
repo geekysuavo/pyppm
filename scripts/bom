@@ -1,23 +1,34 @@
 #!/bin/bash
 
+# define default project parameters.
 prj=null
 ver=1
 rev=0
 
+# source the project parameter file.
 source proj
 
+# loop for each unique part number in the bill of materials file.
 for partno in $(awk -F ',' 'NF==4{print$4}' ${prj}-bom.csv | sort -u); do
+  # find the number of occurrences of the part number in the BOM.
   n=$(awk -F ',' -v pn="${partno}" \
-    'BEGIN{n=0}$4==pn{n++}END{print n}' \
+    'BEGIN {n = 0} $4 == pn {n++} END {print n}' \
     ${prj}-bom.csv)
+
+  # compute the required length to keep a 40-column total width.
   len=${#partno}
   nsep=$(expr 40 - ${len})
   sep=""
+
+  # build a separator string.
   for i in $(seq 1 ${nsep}); do
     sep="${sep} "
   done
+
+  # print the final line of output.
   echo "${partno}${sep}${n}"
 done
 
+# sync the filesystem with the disks.
 sync
 

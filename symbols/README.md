@@ -13,7 +13,7 @@ that tree. For example, `linear/lt3015-1.sym` will be installed to
 
 ### Installation script
 
-To install the custom footprints into your `gschem` main directory, first edit
+To install the custom symbols into your `gschem` main directory, first edit
 the `install` file. Make sure the path given on this line:
 
 > `GEDADIR=/usr/share/gEDA`

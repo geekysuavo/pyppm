@@ -2,8 +2,8 @@
 args = argv();
 argc = length(args);
 x = load(args{1});
-f = x(:,1);
-A = x(:,2);
-r = [f A];
-bw = trapz(f,A)/max(A);
-printf('effective bandwidth: %f kHz\n',bw/1000);
+f = x(:, 1);
+A = x(:, 2);
+r = [f, A];
+bw = trapz(f, A) ./ max(A);
+printf('effective bandwidth: %f kHz\n', bw / 1000);

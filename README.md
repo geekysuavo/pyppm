@@ -61,7 +61,9 @@ fit into any of the other subdirectories, like recommended color schemes for
 Gerber rendering, _etc_.
 
 ### Scripts
-FIXME
+
+Miscellaneous support scripts that I wrote to make my own life easier during
+PyPPM development are co-located in the `scripts` directory.
 
 ### Simulations
 FIXME

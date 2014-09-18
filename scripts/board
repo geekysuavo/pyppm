@@ -1,22 +1,30 @@
 #!/bin/bash
 
+# define default project parameters.
 prj=null
 ver=1
 rev=0
 
+# source the project parameter file.
 source proj
 
+# write a very loud confirmation request to the terminal, and read back a
+# response from the user.
 echo -n "*** ARE YOU SURE YOU WANT TO WIPE THE CURRENT PCB??? [yes/NO] "
 read confirmation
 
+# check if the response of the user was not precisely 'yes'.
 if [ ! "${confirmation}" == "yes" ]; then
+  # nope. avoid trashing the current board design.
   echo "cancelling... later tater."
   exit 0
 fi
 
+# remove all previous board design files and rebuild them from scratch.
 rm -f v${ver}.{cmd,net,pcb}
 gsch2pcb -d /usr/share/pcb/newlib -o v${ver} *.sch
 
+# clean up and sync.
 rm -f *~ *.log
 sync
 
