@@ -87,17 +87,17 @@ int main (void) {
         /* act based on the host command. */
         switch (host_command) {
           /* read shims. */
-          case SCB_MSG_HOST_READ_SHIMS:
+          case PPM_MSG_HOST_READ_SHIMS:
             scb_send_shims ();
             break;
 
           /* write shims. */
-          case SCB_MSG_HOST_WRITE_SHIMS:
+          case PPM_MSG_HOST_WRITE_SHIMS:
             scb_receive_shims ();
             break;
 
           /* reset device. */
-          case SCB_MSG_HOST_RESET:
+          case PPM_MSG_HOST_RESET:
             scb_reset ();
             break;
 

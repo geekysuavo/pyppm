@@ -37,9 +37,8 @@
 #define PPM_MSG_HOST_RESET        0x7e  /* '~' */
 
 /* define all host-sent messages for the SCB. */
-#define SCB_MSG_HOST_READ_SHIMS   0x52  /* 'R' */
-#define SCB_MSG_HOST_WRITE_SHIMS  0x57  /* 'W' */
-#define SCB_MSG_HOST_RESET        0x7e  /* '~' */
+#define PPM_MSG_HOST_READ_SHIMS   0x52  /* 'R' */
+#define PPM_MSG_HOST_WRITE_SHIMS  0x57  /* 'W' */
 
 /* define all device-sent messages for the PPM. */
 #define PPM_MSG_DEVICE_WAIT     0x21  /* '!' */
@@ -51,8 +50,7 @@
 #define PPM_MSG_DEVICE_VERSION  0x76  /* 'v' */
 
 /* define all device-sent messages for the SCB. */
-#define SCB_MSG_DEVICE_SHIMS  0x50  /* 'P' */
-#define SCB_MSG_DEVICE_DONE   0x2e  /* '.' */
+#define PPM_MSG_DEVICE_SHIMS  0x50  /* 'P' */
 
 /* define all pulse program element codes. */
 #define PPM_PULPROG_DEADTIME  0x01

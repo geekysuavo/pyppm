@@ -228,6 +228,57 @@ int ppm_scbtest (const char *fname) {
   return 1;
 }
 
+/* ppm_ver_fd: reads version values from the device. */
+int ppm_ver_fd (int fd, int *ver, int *rev) {
+  /* declare required variables. */
+  uint8_t buf[PPM_VERMSG_BYTES];
+  int i, n;
+
+  /* zero the buffer. */
+  for (i = 0; i < PPM_VERMSG_BYTES; i++)
+    buf[i] = 0x00;
+
+  /* set up the message buffer. */
+  buf[0] = PPM_MSG_HOST_VERSION;
+
+  /* write the message. */
+  if (write (fd, buf, 1) != 1) {
+    /* output an error. */
+    fprintf (stderr, "error: failed to write '%02x'\n", buf[0]);
+    return 0;
+  }
+
+  /* read back the device response. */
+  n = read (fd, buf, PPM_VERMSG_BYTES);
+
+  /* see if the number of expected bytes was read. */
+  if (n != PPM_VERMSG_BYTES) {
+    /* output an error. */
+    fprintf (stderr, "error: failed to read version (%d != %d)\n",
+             n, PPM_VERMSG_BYTES);
+
+    /* return an error. */
+    return 0;
+  }
+
+  /* check the last byte. */
+  if (buf[PPM_VERMSG_BYTES - 1] != PPM_MSG_DEVICE_DONE) {
+    /* output an error message. */
+    fprintf (stderr, "error: invalid buffer end '%02x'\n",
+             buf[PPM_VERMSG_BYTES - 1]);
+
+    /* return an error. */
+    return 0;
+  }
+
+  /* store the read version information. */
+  *ver = (buf[1] & 0xf0) >> 4;
+  *rev = buf[1] & 0x0f;
+
+  /* return success. */
+  return 1;
+}
+
 /* ppm_rpar_fd: reads parameters from the device. */
 int ppm_rpar_fd (int fd, ppm_parms *parms) {
   /* declare required variables. */
@@ -526,6 +577,39 @@ int ppm_zg_fd (int fd, ppm_parms *parms, ppm_data *acq) {
 
   /* return success. */
   return 1;
+}
+
+/* ppm_ver: read version information from the device. */
+int ppm_ver (const char *fname, int *ver, int *rev) {
+  /* declare required variables. */
+  int fd, ret;
+
+  /* output a message. */
+  fprintf (stderr, "VER:");
+
+  /* open the device file. */
+  if ((fd = ppm_device_open (fname)) == -1) {
+    /* output an error. */
+    fprintf (stderr, "error: failed to open device file.\n");
+
+    /* return failure. */
+    return 0;
+  }
+
+  /* run the version request code on the file descriptor. */
+  ret = ppm_ver_fd (fd, ver, rev);
+
+  /* close the device file. */
+  ppm_device_close (fd);
+
+  /* output a message. */
+  if (ret)
+    fprintf (stdout, " %d.%d\n", *ver, *rev);
+  else
+    fprintf (stderr, " ERR\n");
+
+  /* return the result. */
+  return ret;
 }
 
 /* ppm_rpar: read parameters from the device. */

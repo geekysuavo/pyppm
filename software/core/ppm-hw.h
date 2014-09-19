@@ -30,6 +30,7 @@
 /* define the number of bytes used in parameter transfers. */
 #define PPM_PARMSG_BYTES 15
 #define PPM_SHIMSG_BYTES 7
+#define PPM_VERMSG_BYTES 3
 
 /* define a quick conversion from index to time. */
 #define SAMPLE_TIME(idx) \
@@ -56,21 +57,21 @@
            ((int32_t) b0 & 0x000000ff))
 
 /* define all host-sent messages for the PPM. */
-#define PPM_MSG_HOST_READ_PARMS   0x72  /* 'r' */
-#define PPM_MSG_HOST_READ_SHIMS   0x52  /* 'R' */
-#define PPM_MSG_HOST_WRITE_PARMS  0x77  /* 'w' */
-#define PPM_MSG_HOST_WRITE_SHIMS  0x57  /* 'W' */
-#define PPM_MSG_HOST_EXECUTE      0x78  /* 'x' */
-#define PPM_MSG_HOST_RESET        0x7e  /* '~' */
-#define PPM_MSG_HOST_TEST_DAC     0x44  /* 'D' */
+//#define PPM_MSG_HOST_READ_PARMS   0x72  /* 'r' */
+//#define PPM_MSG_HOST_READ_SHIMS   0x52  /* 'R' */
+//#define PPM_MSG_HOST_WRITE_PARMS  0x77  /* 'w' */
+//#define PPM_MSG_HOST_WRITE_SHIMS  0x57  /* 'W' */
+//#define PPM_MSG_HOST_EXECUTE      0x78  /* 'x' */
+//#define PPM_MSG_HOST_RESET        0x7e  /* '~' */
+//#define PPM_MSG_HOST_TEST_DAC     0x44  /* 'D' */
 
 /* define all device-sent messages for the PPM. */
-#define PPM_MSG_DEVICE_PARMS   0x70  /* 'p' */
-#define PPM_MSG_DEVICE_SHIMS   0x50  /* 'P' */
-#define PPM_MSG_DEVICE_WAIT    0x21  /* '!' */
-#define PPM_MSG_DEVICE_DONE    0x2e  /* '.' */
-#define PPM_MSG_DEVICE_BEGIN   0x3e  /* '>' */
-#define PPM_MSG_DEVICE_SAMPLE  0x73  /* 's' */
+//#define PPM_MSG_DEVICE_PARMS   0x70  /* 'p' */
+//#define PPM_MSG_DEVICE_SHIMS   0x50  /* 'P' */
+//#define PPM_MSG_DEVICE_WAIT    0x21  /* '!' */
+//#define PPM_MSG_DEVICE_DONE    0x2e  /* '.' */
+//#define PPM_MSG_DEVICE_BEGIN   0x3e  /* '>' */
+//#define PPM_MSG_DEVICE_SAMPLE  0x73  /* 's' */
 
 /* define the PPM device filename. */
 #ifdef _WIN32
@@ -97,6 +98,8 @@ int ppm_dactest (const char *fname);
 
 int ppm_scbtest (const char *fname);
 
+int ppm_ver_fd (int fd, int *ver, int *rev);
+
 int ppm_rpar_fd (int fd, ppm_parms *parms);
 
 int ppm_wpar_fd (int fd, ppm_parms *parms);
@@ -106,6 +109,8 @@ int ppm_rsh_fd (int fd, ppm_shims *shims);
 int ppm_wsh_fd (int fd, ppm_shims *shims);
 
 int ppm_zg_fd (int fd, ppm_parms *parms, ppm_data *acq);
+
+int ppm_ver (const char *fname, int *ver, int *rev);
 
 int ppm_rpar (const char *fname, ppm_parms *parms);
 

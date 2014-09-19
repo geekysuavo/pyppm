@@ -64,7 +64,7 @@ void scb_send_shims (void) {
   usb_cdc_putchar (LSB (scb_shim_z_val));
 
   /* send the done message. */
-  usb_cdc_putchar (SCB_MSG_DEVICE_DONE);
+  usb_cdc_putchar (PPM_MSG_DEVICE_DONE);
 }
 
 /* scb_receive_shims: reads a new shim set from the host. */
@@ -94,5 +94,5 @@ void scb_receive_shims (void) {
   spi_write_dac (scb_shim_x_val, scb_shim_y_val, scb_shim_z_val);
 
   /* send an acknowledgement that the shims were set. */
-  usb_cdc_putchar (SCB_MSG_DEVICE_DONE);
+  usb_cdc_putchar (PPM_MSG_DEVICE_DONE);
 }

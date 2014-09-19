@@ -37,6 +37,9 @@
 #include <sndfile.h>
 #endif
 
+/* include the globally defined messages and macros. */
+#include "../../firmware/lib/msg.h"
+
 /* include ppm headers. */
 #include "ppm-hw.h"
 #include "ppm-parms.h"
