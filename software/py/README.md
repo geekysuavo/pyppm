@@ -34,3 +34,21 @@ be imported just like any other module. Hooray!
 
 ## Example usage
 
+To use `pyppm` in your Python programs, you'll first need to import the
+module:
+
+```python
+import pyppm
+```
+
+It'll probably be useful to have `numpy` and `matplotlib` available as well.
+All the following code that uses those two modules assumes they've been
+imported as follows:
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+```
+
+FIXME
+
