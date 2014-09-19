@@ -58,7 +58,8 @@ circuit behavior. To see the actual simulation files, look in `simulations`.
 
 The `notes` directory holds a few random jots of information that don't really
 fit into any of the other subdirectories, like recommended color schemes for
-Gerber rendering, _etc_.
+Gerber rendering, _etc_. Documentation related to the PyPPM's entry into The
+Hackaday Prize will also be placed here.
 
 ### Scripts
 
@@ -71,7 +72,10 @@ The `simulations` directory contains all SPICE simulations I've made to analyze
 the behavior of subcircuit modules in PyPPM.
 
 ### Software
-FIXME
+
+The `software` directory holds all software written during the course of the
+PyPPM project's development. Anything from command-line utilities to python
+modules to calculations of free induction decays is here.
 
 ### Symbols
 
