@@ -40,7 +40,9 @@ coil, and enclosure designs. Anything physically constructable is likely to
 have design files living in this subdirectory.
 
 ### Firmware
-FIXME
+
+The `firmware` directory contains all device firmware, both for PyPPM devices
+and any other devices that use megaAVR microcontrollers.
 
 ### Footprints
 

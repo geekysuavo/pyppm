@@ -195,7 +195,8 @@ frequency-domain data, however, and not the time-domain result.
 
 ### A complete `pyppm` example
 
-Here is an example of how to use the `pyppm` module from start to finish:
+Here is an example of how to use the `pyppm` module from start to finish
+on a connected PyPPMv1 device:
 
 ```python
 # import the pyppm module.
