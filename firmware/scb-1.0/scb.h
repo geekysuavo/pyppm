@@ -20,15 +20,6 @@
 #ifndef __PPM_SCB_H__
 #define __PPM_SCB_H__
 
-/* define all host-sent messages for the SCB. */
-#define SCB_MSG_HOST_READ_SHIMS   0x52  /* 'R' */
-#define SCB_MSG_HOST_WRITE_SHIMS  0x57  /* 'W' */
-#define SCB_MSG_HOST_RESET        0x7e  /* '~' */
-
-/* define all device-sent messages for the SCB. */
-#define SCB_MSG_DEVICE_SHIMS   0x50  /* 'P' */
-#define SCB_MSG_DEVICE_DONE    0x2e  /* '.' */
-
 /* begin function declarations: */
 
 void scb_reset (void);

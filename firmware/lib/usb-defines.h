@@ -140,9 +140,14 @@
 /* usb_enable: enables the usb controller and the usb data buffers (D+, D-).
  * m32u2 datasheet, sec 20.10.1, page 195.
  */
+#ifdef _AVR_IOM32U4_H_
 #define usb_enable() \
   UHWCON |= (1 << UVREGE); \
   USBCON |= (1 << USBE);
+#else
+#define usb_enable() \
+  USBCON |= (1 << USBE);
+#endif
 
 /* usb_disable: disables the usb controller and the usb data buffers (D+, D-).
  * m32u2 datasheet, sec 20.10.1, page 195.

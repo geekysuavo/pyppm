@@ -30,6 +30,7 @@
 #define PPM_MSG_HOST_PULPROG      0x50  /* 'P' */
 #define PPM_MSG_HOST_RESHIM       0x53  /* 'S' */
 #define PPM_MSG_HOST_RETUNE       0x54  /* 'T' */
+#define PPM_MSG_HOST_VERSION      0x56  /* 'V' */
 #define PPM_MSG_HOST_READ_PARMS   0x72  /* 'r' */
 #define PPM_MSG_HOST_WRITE_PARMS  0x77  /* 'w' */
 #define PPM_MSG_HOST_EXECUTE      0x78  /* 'x' */
@@ -41,12 +42,13 @@
 #define SCB_MSG_HOST_RESET        0x7e  /* '~' */
 
 /* define all device-sent messages for the PPM. */
-#define PPM_MSG_DEVICE_WAIT    0x21  /* '!' */
-#define PPM_MSG_DEVICE_DONE    0x2e  /* '.' */
-#define PPM_MSG_DEVICE_BEGIN   0x3e  /* '>' */
-#define PPM_MSG_DEVICE_ERROR   0x3f  /* '?' */
-#define PPM_MSG_DEVICE_PARMS   0x70  /* 'p' */
-#define PPM_MSG_DEVICE_SAMPLE  0x73  /* 's' */
+#define PPM_MSG_DEVICE_WAIT     0x21  /* '!' */
+#define PPM_MSG_DEVICE_DONE     0x2e  /* '.' */
+#define PPM_MSG_DEVICE_BEGIN    0x3e  /* '>' */
+#define PPM_MSG_DEVICE_ERROR    0x3f  /* '?' */
+#define PPM_MSG_DEVICE_PARMS    0x70  /* 'p' */
+#define PPM_MSG_DEVICE_SAMPLE   0x73  /* 's' */
+#define PPM_MSG_DEVICE_VERSION  0x76  /* 'v' */
 
 /* define all device-sent messages for the SCB. */
 #define SCB_MSG_DEVICE_SHIMS  0x50  /* 'P' */

@@ -27,6 +27,7 @@
 #include "ppm.h"
 #include "../lib/clk.h"
 #include "../lib/usb.h"
+#include "../lib/msg.h"
 #include "tcnt.h"
 #include "gpio.h"
 #include "spi.h"
