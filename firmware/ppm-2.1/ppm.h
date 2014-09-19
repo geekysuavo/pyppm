@@ -26,6 +26,8 @@ void ppm_done (void);
 
 void ppm_error (void);
 
+void ppm_version (void);
+
 void ppm_reset (void);
 
 void ppm_execute (void);

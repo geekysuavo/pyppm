@@ -104,6 +104,11 @@ int main (void) {
             ppm_execute ();
             break;
 
+          /* read version. */
+          case PPM_MSG_HOST_VERSION:
+            ppm_version ();
+            break;
+
           /* reset device. */
           case PPM_MSG_HOST_RESET:
             ppm_reset ();

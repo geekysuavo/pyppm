@@ -41,6 +41,14 @@ void ppm_error (void) {
   usb_cdc_putchar (PPM_MSG_DEVICE_ERROR);
 }
 
+/* ppm_version: returns the firmware version of the device. */
+void ppm_version (void) {
+  /* write the message header, version, and footer. */
+  usb_cdc_putchar (PPM_MSG_DEVICE_VERSION);
+  usb_cdc_putchar (0x21);
+  usb_cdc_putchar (PPM_MSG_DEVICE_DONE);
+}
+
 /* ppm_reset: resets the device using the watchdog timer. */
 void ppm_reset (void) {
   /* declare required variables. */

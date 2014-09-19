@@ -76,6 +76,14 @@ inline void ppm_deadtime (uint16_t dt) {
     _delay_loop_2 (dt);
 }
 
+/* ppm_version: returns the firmware version of the device. */
+void ppm_version (void) {
+  /* write the message header, version, and footer. */
+  usb_cdc_putchar (PPM_MSG_DEVICE_VERSION);
+  usb_cdc_putchar (0x12);
+  usb_cdc_putchar (PPM_MSG_DEVICE_DONE);
+}
+
 /* ppm_reset: resets the device using the watchdog timer. */
 void ppm_reset (void) {
   /* declare required variables. */

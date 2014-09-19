@@ -22,6 +22,8 @@
 
 /* begin function declarations: */
 
+void ppm_version (void);
+
 void ppm_reset (void);
 
 void ppm_execute (void);
