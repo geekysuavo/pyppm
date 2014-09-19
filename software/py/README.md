@@ -193,3 +193,41 @@ The above method implements a minimization of the background noise in `Aoff`
 that is present in `Aon`, in a least-squares sense. It can only return the
 frequency-domain data, however, and not the time-domain result.
 
+### A complete `pyppm` example
+
+Here is an example of how to use the `pyppm` module from start to finish:
+
+```python
+# import the pyppm module.
+import pyppm
+
+# import numpy and matplotlib.
+import numpy as np
+import matplotlib.pyplot as plt
+
+# connect to the device.
+dev = pyppm.PPM()
+
+# extend the polarization time.
+dev.setparm(pyppm.POLARIZE_TIME, 10)
+
+# acquire a scan with polarization.
+(t, aon) = dev.acquire()
+
+# turn off polarization.
+dev.setparm(pyppm.POLARIZE_CURRENT, 0)
+dev.setparm(pyppm.POLARIZE_TIME, 0)
+
+# acquire a scan without polarization.
+(t, aoff) = dev.acquire()
+
+# Fourier transform the data.
+(f, Aon) = pyppm.fft(t, aon)
+(f, Aoff) = pyppm.fft(t, aoff)
+
+# plot the data.
+l, = plt.plot(np.array(f), np.array(Aon))
+l, = plt.plot(np.array(f), np.array(Aoff))
+plt.show()
+```
+
