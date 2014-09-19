@@ -20,7 +20,8 @@ To compile the firmware using [AVR GCC] (http://www.nongnu.org/avr-libc/), run
 
 > `make`
 
-To flash the compiled firmware onto a device, use the `dfu` target:
+To flash the compiled firmware onto a device with [dfu-programmer] (
+http://dfu-programmer.github.io/), use the `dfu` target:
 
 > `sudo make dfu`
 
