@@ -5,18 +5,18 @@ This directory contains all the software required to use the PyPPM hardware.
 Global compilation configuration information is stored in `global.mk` here,
 and each subdirectory sources that file before defining new make rules.
 
-*Note:* Depending on the ownership of the `/dev/ttyACM0` or `/dev/usbmodemXXX`
-device file created by the operating system upon connection of the PyPPM to
-the host computer, you may have to run programs that talk to the PyPPM as
-root, _e.g.:_ `./liveft` would become `sudo ./liveft`, _etc_. This goes for
-any Python programs that use the `pyppm` module too.
-
 ### Core source code
 
 A core set of functionality, located in `core`, has been written in the C
 language to interface to the PyPPM via the character device (usually
 `/dev/ttyACM0`) it creates on the host computer. All higher level code
 (including the Python module) wraps this core C code.
+
+*Note:* Depending on the ownership of the `/dev/ttyACM0` or `/dev/usbmodemXXX`
+device file created by the operating system upon connection of the PyPPM to
+the host computer, you may have to run programs that talk to the PyPPM as
+root, _e.g.:_ `./liveft` would become `sudo ./liveft`, _etc_. This goes for
+any Python programs that use the `pyppm` module too.
 
 ### Command-line utilities
 
@@ -36,10 +36,12 @@ want to use the PyPPM for anything useful, the Python module is recommended.
 A good test of the PyPPM and the `cli` utilities is to build them and run
 (with the PyPPM connected) a few short commands:
 
-> make
-> ./rparh
-> ./zg
-> ./ft
+```
+make
+./rparh
+./zg
+./ft
+```
 
 These commands should connect to the PyPPM, read the current set of parameters,
 run a single acquisition, and Fourier transform the result. The time-domain
@@ -55,7 +57,7 @@ the device. Again, the Python module is recommended.
 
 To use `backspin`, just build it and run (with a PyPPM attached):
 
-> make && ./backspin
+> `make && ./backspin`
 
 ### Live acquisition view
 
@@ -66,7 +68,7 @@ really just for debugging the hardware analog signal chain.
 
 To use `liveft`, just build it and run (with a PyPPM attached):
 
-> make && ./liveft
+> `make && ./liveft`
 
 ### Signal-to-noise calculator
 
@@ -78,7 +80,7 @@ input values.
 Example input values may be found in `napkin/coil-2.0.txt`. To compute the
 results, just build and run like so:
 
-> make && ./napkin < coil-2.0.txt
+> `make && ./napkin < coil-2.0.txt`
 
 ### Free Induction Decay solvers
 
@@ -90,7 +92,7 @@ long polarization turn-off times on FID intensity, a demonstration of the
 
 To run the solvers, just build:
 
-> make
+> `make`
 
 ### Python modules
 
