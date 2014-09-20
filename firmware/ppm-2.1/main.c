@@ -40,7 +40,6 @@ int main (void) {
 //FIXME  tcnt_init ();
   gpio_init ();
   spi_init ();
-/*FIXME*/  gpio_asc_enable ();
   usb_init ();
 
   /* wait for the usb host to configure the device. */

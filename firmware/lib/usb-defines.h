@@ -16,15 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* * * * AVR USB CHIP-SPECIFIC DEFINITIONS * * * */
-
-/* redefine the EPNUM[2:0] bits in UENUM to match the m32u4 datasheet. */
-#ifdef _AVR_IOM32U4_H_
-#define EPNUM0 UENUM_0
-#define EPNUM1 UENUM_1
-#define EPNUM2 UENUM_2
-#endif
-
 /* * * * USB CDC IMPLEMENTATION-SPECIFIC DEFINITIONS * * * */
 
 /* define the manufacturer, product and serial number strings. */
@@ -33,25 +24,38 @@
 #define USB_STR_SERIAL   L"PPMv1r1"
 
 /* define the usb vendor and product id words. */
-#define USB_VID 0x03eb /* Atmel corporation */
-#define USB_PID 0x2018 /* AT90USBKEY CDC-ACM */
+#define USB_VID 0x03eb  /* Atmel corporation */
+#define USB_PID 0x2018  /* AT90USBKEY CDC-ACM */
 
-/* usb-serial implementation endpoint count. */
+/* usb-cdc implementation endpoint count. */
 #define USB_EP_COUNT 5
 
-/* usb-serial implementation endpoint numbers. */
+/* usb-cdc implementation endpoint numbers. endpoint 0 is the default
+ * control endpoint, and all others follow sequentially such that their
+ * max FIFO sizes are identical on either the m32u2 or m32u4.
+ * m32u2 datasheet, sec 21.1, page 197.
+ * m32u4 datasheet, sec 22.1, page 266.
+ */
 #define USB_EP_NUM_CONTROL 0
 #define USB_EP_NUM_CDC_ACM 2
 #define USB_EP_NUM_CDC_RX  3
 #define USB_EP_NUM_CDC_TX  4
 
-/* usb-serial implementation endpoint sizes. */
+/* usb-cdc implementation endpoint sizes. given the above endpoint indexing,
+ * all endpoints may allocate up to 64 bytes of FIFO memory.
+ * m32u2 datasheet, sec 21.1, page 197.
+ * m32u4 datasheet, sec 22.1, page 266.
+ */
 #define USB_EP_SIZE_CONTROL 16
 #define USB_EP_SIZE_CDC_ACM 16
-#define USB_EP_SIZE_CDC_RX  32
-#define USB_EP_SIZE_CDC_TX  32
+#define USB_EP_SIZE_CDC_RX  64
+#define USB_EP_SIZE_CDC_TX  64
 
-/* usb-serial implementation endpoint bank counts. */
+/* usb-cdc implementation endpoint bank counts. the control (0) and acm (2)
+ * endpoints are single-buffered, and the rx/tx endpoints are double-buffered.
+ * m32u2 datasheet, sec 21.1, page 197.
+ * m32u4 datasheet, sec 22.1, page 266.
+ */
 #define USB_EP_BANKS_CONTROL 1
 #define USB_EP_BANKS_CDC_ACM 1
 #define USB_EP_BANKS_CDC_RX  2
@@ -61,6 +65,7 @@
 
 /* usb address bitmask. used to set only the UADD bits in UDADDR.
  * m32u2 datasheet, sec 21.18.4, page 212.
+ * m32u4 datasheet, sec 22.18.1, page 280.
  */
 #define USB_SET_ADDRESS_MASK \
   ((1 << UADD6) | (1 << UADD5) | (1 << UADD4) | (1 << UADD3) | \
@@ -69,6 +74,7 @@
 /* usb endpoint type definitions. these are OR'ed onto the UECFG0X register
  * (alongside the EPDIR bit) during endpoint configuration.
  * m32u2 datasheet, sec 21.18.11, page 215, table 21-2.
+ * m32u4 datasheet, sec 22.18.2, pages 282-283.
  */
 #define USB_EP_TYPE_CONTROL     (0x00)
 #define USB_EP_TYPE_ISOCHRONOUS (1 << EPTYPE0)
@@ -78,6 +84,7 @@
 /* usb endpoint direction definitions. these are OR'ed onto the UECFG0X
  * register (alongside the EPTYPE bits) during endpoint configuration.
  * m32u2 datasheet, sec 21.18.11, page 215.
+ * m32u4 datasheet, sec 22.18.2, page 283.
  */
 #define USB_EP_DIR_IN   (1 << EPDIR)
 #define USB_EP_DIR_OUT  (0x00)
@@ -138,19 +145,24 @@
 /* * * * AVR USB DEVICE FUNCTIONS * * * */
 
 /* usb_enable: enables the usb controller and the usb data buffers (D+, D-).
- * m32u2 datasheet, sec 20.10.1, page 195.
+ * on m32u4 devices, also enables the usb pad voltage regulator.
  */
 #ifdef _AVR_IOM32U4_H_
+/* m32u4 datasheet, sec 21.12.1, page 263.
+ */
 #define usb_enable() \
   UHWCON |= (1 << UVREGE); \
-  USBCON |= (1 << USBE);
+  USBCON |= ((1 << USBE) | (1 << OTGPADE));
 #else
+/* m32u2 datasheet, sec 20.10.1, page 195.
+ */
 #define usb_enable() \
   USBCON |= (1 << USBE);
 #endif
 
 /* usb_disable: disables the usb controller and the usb data buffers (D+, D-).
  * m32u2 datasheet, sec 20.10.1, page 195.
+ * m32u4 datasheet, sec 21.12.1, page 263.
  */
 #define usb_disable() \
   USBCON &= ~(1 << USBE);
@@ -165,6 +177,7 @@
 /* usb_attach: attaches the usb controller to the bus by enabling the internal
  * 1.5k pull-up resistor on the D+ usb data line.
  * m32u2 datasheet, sec 21.18.1, page 210.
+ * m32u4 datasheet, sec 22.18.1, page 278.
  */
 #define usb_attach() \
   UDCON &= ~(1 << DETACH);
@@ -172,18 +185,21 @@
 /* usb_detach: detaches the usb controller from the bus by disabling the
  * internal 1.5k pull-up resistor on the D+ usb data line.
  * m32u2 datasheet, sec 21.18.1, page 210.
+ * m32u4 datasheet, sec 22.18.1, page 278.
  */
 #define usb_detach() \
   UDCON |= (1 << DETACH);
 
 /* usb_clk_freeze: disables the usb controller clock.
  * m32u2 datasheet, sec 20.10.1, page 195.
+ * m32u4 datasheet, sec 21.12.1, page 264.
  */
 #define usb_clk_freeze() \
   USBCON |= (1 << FRZCLK);
 
 /* usb_clk_unfreeze: enables the usb controller clock.
  * m32u2 datasheet, sec 20.10.1, page 195.
+ * m32u4 datasheet, sec 21.12.1, page 264.
  */
 #define usb_clk_unfreeze() \
   USBCON &= ~(1 << FRZCLK);
@@ -192,80 +208,103 @@
 
 /* usb_int_enable: enables the specified usb device interrupt.
  * m32u2 datasheet, sec 21.18.3, pages 211-212.
+ * m32u4 datasheet, sec 22.18.1, pages 279-280.
  */
 #define usb_int_enable(bit) \
   UDIEN |= (1 << bit);
 
 /* usb_int_disable: disables the specified usb device interrupt.
  * m32u2 datasheet, sec 21.18.3, pages 211-212.
+ * m32u4 datasheet, sec 22.18.1, pages 279-280.
  */
 #define usb_int_disable(bit) \
   UDIEN &= ~(1 << bit);
 
 /* usb_int_disable_all: disables all usb device interrupts.
  * m32u2 datasheet, sec 21.18.3, pages 211-212.
+ * m32u4 datasheet, sec 22.18.1, pages 279-280.
  */
 #define usb_int_disable_all() \
   UDIEN = 0;
 
 /* usb_int_is_enabled: checks if the specified usb device interrupt is enabled.
  * m32u2 datasheet, sec 21.18.3, pages 211-212.
+ * m32u4 datasheet, sec 22.18.1, pages 279-280.
  */
 #define usb_int_is_enabled(bit) \
   (UDIEN & (1 << bit))
 
 /* usb_int_is_flagged: checks if the specified usb device interrupt is flagged.
  * m32u2 datasheet, sec 21.18.2, pages 210-211.
+ * m32u4 datasheet, sec 22.18.1, pages 278-279.
  */
 #define usb_int_is_flagged(bit) \
   (UDINT & (1 << bit))
 
 /* usb_int_clear: clears the specified usb device interrupt flag.
  * m32u2 datasheet, sec 21.18.2, pages 210-211.
+ * m32u4 datasheet, sec 22.18.1, pages 278-279.
  */
 #define usb_int_clear(bit) \
   UDINT &= ~(1 << bit);
 
 /* usb_int_clear_all: clears all usb device interrupt flags.
  * m32u2 datasheet, sec 21.18.2, pages 210-211.
+ * m32u4 datasheet, sec 22.18.1, pages 278-279.
  */
 #define usb_int_clear_all() \
   UDINT = 0;
 
 /* * * * AVR USB ENDPOINT FUNCTIONS * * * */
 
+/* EPNUM[2:0]: endpoint number bits in the UENUM register must be redefined
+ * to maintain consistency between the m32u2 and m32u4 datasheets.
+ */
+#ifdef _AVR_IOM32U4_H_
+#define EPNUM0 UENUM_0
+#define EPNUM1 UENUM_1
+#define EPNUM2 UENUM_2
+#endif
+
 /* usb_ep_select: selects the specified usb endpoint.
  * m32u2 datasheet, sec 21.18.8, page 214.
+ * m32u4 datasheet, sec 22.18.2, page 281.
  */
 #define usb_ep_select(epnum) \
   UENUM = (epnum & ((1 << EPNUM2) | (1 << EPNUM1) | (1 << EPNUM0)));
 
 /* usb_ep_enable: enables the currently selected endpoint.
  * m32u2 datasheet, sec 21.18.10, page 215.
+ * m32u4 datasheet, sec 22.18.2, page 282.
  */
 #define usb_ep_enable() \
   UECONX = (1 << EPEN);
 
 /* usb_ep_disable: disables the currently selected endpoint.
  * m32u2 datasheet, sec 21.18.10, page 215.
+ * m32u4 datasheet, sec 22.18.2, page 282.
  */
 #define usb_ep_disable() \
   UECONX &= ~(1 << EPEN);
 
 /* usb_ep_stall: enables returning a STALL handshake request.
  * m32u2 datasheet, sec 21.18.10, page 214.
+ * m32u4 datasheet, sec 22.18.2, page 282.
  */
 #define usb_ep_stall() \
   UECONX = ((1 << STALLRQ) | (1 << EPEN));
 
 /* usb_ep_end_stall: clears the STALLRQ bit in the UECONX register.
  * m32u2 datasheet, sec 21.18.10, page 214.
+ * m32u4 datasheet, sec 22.18.2, page 282.
  */
 #define usb_ep_end_stall() \
   UECONX |= (1 << STALLRQC);
 
-/* usb_ep_reset: assert and de-assert the currently select endpoint reset.
+/* usb_ep_reset: reset the cdc acm, tx and rx endpoints in the usb controller,
+ * but do not reset the control endpoint (i.e. EPRST0 == 0).
  * m32u2 datasheet, sec 21.18.9, page 214.
+ * m32u4 datasheet, sec 22.18.2, page 281.
  */
 #define usb_ep_reset() \
   UERST = ((1 << EPRST4) | (1 << EPRST3) | (1 << EPRST2) | (1 << EPRST1)); \
@@ -274,6 +313,7 @@
 /* usb_ep_size: usb endpoint size bitfield calculation macro. used to set the
  * EPSIZE[2:0] bits in the UECFG1X register during endpoint configuration.
  * m32u2 datasheet, sec 21.18.12, page 216, table 21-3.
+ * m32u4 datasheet, sec 22.18.2, page 283.
  */
 #define usb_ep_size(sz) \
   ((sz) == 64 ? ((1 << EPSIZE1) | (1 << EPSIZE0)) : \
@@ -283,12 +323,14 @@
 /* usb_ep_banks: usb endpoint banks bitfield calculation macro. used to set
  * the EPBK[1:0] bits in the UECFG1X register during endpoint configuration.
  * m32u2 datasheet, sec 21.18.12, page 216, table 21-4.
+ * m32u4 datasheet, sec 22.18.2, page 283.
  */
 #define usb_ep_banks(banks) \
   (banks > 1 ? (1 << EPBK0) : 0x00)
 
 /* usb_ep_conf: configures the currently selected endpoint.
  * m32u2 datasheet, secs 21.18.11-12, pages 215-216.
+ * m32u4 datasheet, sec 22.18.2, page 283.
  */
 #define usb_ep_conf(typ,dir,sz,banks) \
   UECFG0X = (typ | dir); \
@@ -296,6 +338,7 @@
 
 /* usb_ep_bytes: returns the number of bytes in the current endpoint bank.
  * m32u2 datasheet, sec 21.18.18, page 221.
+ * m32u4 datasheet, sec 22.18.2, page 288.
  */
 #define usb_ep_bytes() \
   UEBCLX
@@ -304,42 +347,49 @@
 
 /* usb_ep_int_enable: enables the specified usb endpoint interrupt.
  * m32u2 datasheet, sec 21.18.16, pages 220-221.
+ * m32u4 datasheet, sec 22.18.2, page 287.
  */
 #define usb_ep_int_enable(bit) \
   UEIENX |= (1 << bit);
 
 /* usb_ep_int_disable: disables the specified usb endpoint interrupt.
  * m32u2 datasheet, sec 21.18.16, pages 220-221.
+ * m32u4 datasheet, sec 22.18.2, page 287.
  */
 #define usb_ep_int_disable(bit) \
   UEIENX &= ~(1 << bit);
 
 /* usb_ep_int_disable_all: disables all usb endpoint interrupts.
  * m32u2 datasheet, sec 21.18.16, pages 220-221.
+ * m32u4 datasheet, sec 22.18.2, page 287.
  */
 #define usb_ep_int_disable_all() \
   UEIENX = 0;
 
 /* usb_ep_int_is_enabled: checks if a usb endpoint interrupt is enabled.
  * m32u2 datasheet, sec 21.18.16, pages 220-221.
+ * m32u4 datasheet, sec 22.18.2, page 287.
  */
 #define usb_ep_int_is_enabled(bit) \
   (UEIENX & (1 << bit))
 
 /* usb_ep_int_is_flagged: checks if a usb endpoint interrupt is flagged.
  * m32u2 datasheet, sec 21.18.15, pages 219-220.
+ * m32u4 datasheet, sec 22.18.2, pages 285-286.
  */
 #define usb_ep_int_is_flagged(bit) \
   (UEINTX & (1 << bit))
 
 /* usb_ep_int_clear: clears the specified usb endpoint interrupt flag.
  * m32u2 datasheet, sec 21.18.15, pages 219-220.
+ * m32u4 datasheet, sec 22.18.2, pages 285-286.
  */
 #define usb_ep_int_clear(bit) \
   UEINTX &= ~(1 << bit);
 
 /* usb_ep_int_clear_all: clears all usb endpoint interrupt flags.
  * m32u2 datasheet, sec 21.18.15, pages 219-220.
+ * m32u4 datasheet, sec 22.18.2, pages 285-286.
  */
 #define usb_ep_int_clear_all() \
   UEINTX = 0;
@@ -348,24 +398,28 @@
 
 /* usb_wait_tx: wait for the current IN endpoint bank to become ready.
  * m32u2 datasheet, sec 21.18.15, page 220.
+ * m32u4 datasheet, sec 22.18.2, page 286.
  */
 #define usb_wait_tx() \
   while (!usb_ep_int_is_flagged (TXINI));
 
 /* usb_ack_tx: acknowledge that the current IN endpoint bank can be filled.
  * m32u2 datasheet, sec 21.18.15, page 220.
+ * m32u4 datasheet, sec 22.18.2, page 286.
  */
 #define usb_ack_tx() \
   usb_ep_int_clear (TXINI);
 
 /* usb_wait_rx: wait for new data on the current OUT endpoint bank.
  * m32u2 datasheet, sec 21.18.15, pages 219-220.
+ * m32u4 datasheet, sec 22.18.2, page 286.
  */
 #define usb_wait_rx() \
   while (!usb_ep_int_is_flagged (RXOUTI));
 
 /* usb_ack_rx: acknowledge that the current OUT endpoint bank has new data.
  * m32u2 datasheet, sec 21.18.15, pages 219-220.
+ * m32u4 datasheet, sec 22.18.2, page 286.
  */
 #define usb_ack_rx() \
   usb_ep_int_clear (RXOUTI);
@@ -374,6 +428,7 @@
 
 /* usb_ep_read_8: reads a byte from the selected endpoint FIFO.
  * m32u2 datasheet, sec 21.18.17, page 221.
+ * m32u4 datasheet, sec 22.18.2, page 287.
  */
 static inline uint8_t usb_ep_read_8 (void) {
   /* return the value of the data register. */
@@ -383,6 +438,7 @@ static inline uint8_t usb_ep_read_8 (void) {
 /* usb_ep_read_16le: reads a little-endian 16-bit word from the selected
  * endpoint FIFO.
  * m32u2 datasheet, sec 21.18.17, page 221.
+ * m32u4 datasheet, sec 22.18.2, page 287.
  */
 static inline uint16_t usb_ep_read_16le (void) {
   /* declare the output value. */
@@ -398,6 +454,7 @@ static inline uint16_t usb_ep_read_16le (void) {
 
 /* usb_ep_write_8: writes a byte to the selected endpoint FIFO.
  * m32u2 datasheet, sec 21.18.17, page 221.
+ * m32u4 datasheet, sec 22.18.2, page 287.
  */
 static inline void usb_ep_write_8 (uint8_t data) {
   /* write the value to the data register. */
@@ -407,6 +464,7 @@ static inline void usb_ep_write_8 (uint8_t data) {
 /* usb_ep_write_16le: writes a little-endian 16-bit word to the selected
  * endpoint FIFO.
  * m32u2 datasheet, sec 21.18.17, page 221.
+ * m32u4 datasheet, sec 22.18.2, page 287.
  */
 static inline void usb_ep_write_16le (uint16_t data) {
   /* write the LSB first. */
@@ -415,7 +473,8 @@ static inline void usb_ep_write_16le (uint16_t data) {
 }
 
 /* usb_ep_control_write_P: performs a control write from program memory.
- * m32u2 datasheet, sec 21.12.2, page 203.
+ * m32u2 datasheet, secs 21.12.1-2, pages 202-203.
+ * m32u4 datasheet, secs 22.12.1-2, pages 271-272.
  */
 static inline void usb_ep_control_write_P (const uint8_t *data_addr,
                                            uint8_t data_len,
