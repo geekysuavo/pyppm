@@ -80,7 +80,7 @@ inline void ppm_deadtime (uint16_t dt) {
 void ppm_version (void) {
   /* write the message header, version, and footer. */
   usb_cdc_putchar (PPM_MSG_DEVICE_VERSION);
-  usb_cdc_putchar (0x13);
+  usb_cdc_putchar (PPM_FW_VERSION);
   usb_cdc_putchar (PPM_MSG_DEVICE_DONE);
 }
 

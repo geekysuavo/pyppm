@@ -45,7 +45,7 @@ void ppm_error (void) {
 void ppm_version (void) {
   /* write the message header, version, and footer. */
   usb_cdc_putchar (PPM_MSG_DEVICE_VERSION);
-  usb_cdc_putchar (0x21);
+  usb_cdc_putchar (PPM_FW_VERSION);
   usb_cdc_putchar (PPM_MSG_DEVICE_DONE);
 }
 

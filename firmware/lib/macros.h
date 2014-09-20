@@ -16,6 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* definition of the hexadecimal firmware version. */
+#define PPM_FW_VERSION \
+  ((PPM_FW_VER_MAJOR << 4) | PPM_FW_VER_MINOR)
+
 /* convenience functions for splitting 16-bit words by byte. */
 #define LSB(n) (n & 0xff)
 #define MSB(n) ((n >> 8) & 0xff)

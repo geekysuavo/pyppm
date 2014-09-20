@@ -22,6 +22,8 @@ DFU=dfu-programmer
 # C Defines
 # ---------------------------------------------------------------------
 DEFS=-DF_CPU=$(F_CPU)UL -DF_CLK=$(F_CLK)UL
+DEFS+= -DPPM_FW_VER_MAJOR=$(VER)
+DEFS+= -DPPM_FW_VER_MINOR=$(REV)
 
 # Compiler flags
 # ---------------------------------------------------------------------
