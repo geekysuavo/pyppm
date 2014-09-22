@@ -1,6 +1,6 @@
 
 /* tcnt.c: PPM firmware timer/counter peripherals source code.
- * Copyright (C) 2013  Bradley Worley  <geekysuavo@gmail.com>
+ * Copyright (C) 2014  Bradley Worley  <geekysuavo@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@
 
 /* ISR (TIMER0_OVF_vect): timer0 overflow interrupt. */
 ISR (TIMER0_OVF_vect) {
-  /* handle polarization timing in the PPM. */
-  ppm_tick_pol ();
+  /* handle delay timing in the PPM. */
+  ppm_tick_del ();
 }
 
 /* ISR (TIMER1_COMPA_vect): timer1 compare match A interrupt. */
@@ -61,10 +61,7 @@ void tcnt0_start (void) {
 }
 
 /* tcnt1_start: set timer/counter1 into motion. */
-void tcnt1_start (void) {
-  /* get the overflow value for the compare match timing. */
-  uint16_t ovf = ppm_get_acquire_ovf ();
-
+void tcnt1_start (uint16_t ovf) {
   /* set the compare match registers. */
   OCR1AH = MSB (ovf);
   OCR1AL = LSB (ovf);

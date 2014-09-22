@@ -51,7 +51,7 @@ void gpio_init (void) {
   /* signal that general purpose i/o has initialized by turning on all
    * indicator leds.
    */
-  gpio_leda_on ();
-  gpio_ledb_on ();
-  gpio_ledc_on ();
+  gpio_led_comm_on ();
+  gpio_led_adc_on ();
+  gpio_led_ccs_on ();
 }

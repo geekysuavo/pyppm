@@ -1,6 +1,6 @@
 
 # define the software targets and object filenames.
-TARGETS=rst tst rpar wpar rsh wsh rparh wparh rshh wshh zg ft hrft wfp snd ver
+TARGETS=rst wpp rpp zg ver ft hrft wfp snd
 OBJECTS=$(addsuffix .o,$(TARGETS))
 
 # include all software-global make rules.

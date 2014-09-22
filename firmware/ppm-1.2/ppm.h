@@ -1,6 +1,6 @@
 
 /* ppm.h: PPM firmware main controller header.
- * Copyright (C) 2013  Bradley Worley  <geekysuavo@gmail.com>
+ * Copyright (C) 2014  Bradley Worley  <geekysuavo@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,22 +22,8 @@
 
 /* begin function declarations: */
 
-void ppm_version (void);
-
-void ppm_reset (void);
-
-void ppm_test_dac (void);
-
-void ppm_execute (void);
-
-inline void ppm_tick_pol (void);
+inline void ppm_tick_del (void);
 
 inline void ppm_tick_acq (void);
-
-void ppm_send_parameters (void);
-
-void ppm_receive_parameters (void);
-
-uint16_t ppm_get_acquire_ovf (void);
 
 #endif /* __PPM_PPM_H__ */

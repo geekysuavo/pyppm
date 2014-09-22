@@ -93,55 +93,31 @@ void spi_write_dac_unit (uint16_t addr, uint16_t value) {
   gpio_dac_deselect ();
 }
 
-/* spi_write_dac: transfers three 13-bit words to the AD5328 SPI DAC. */
-void spi_write_dac (uint16_t x, uint16_t y, uint16_t z) {
+/* spi_write_dac_pair: writes a single signed 16-bit word to the AD5328
+ * SPI DAC.
+ */
+void spi_write_dac_pair (uint16_t addr0, uint16_t addr1, uint16_t v) {
   /* declare required variables. */
-  uint16_t mx, my, mz;
-  uint8_t sx, sy, sz;
+  uint16_t mv;
+  uint8_t sv;
 
-  /* extract out the sign bits from the sign-magnitude values. */
-  sx = (x & (1 << 12)) >> 12;
-  sy = (y & (1 << 12)) >> 12;
-  sz = (z & (1 << 12)) >> 12;
+  /* compute the sign of the value. */
+  sv = (v & (1 << 15)) >> 15;
 
-  /* extract out the magnitudes from the sign-magnitude values. */
-  mx = x & ~(1 << 12);
-  my = y & ~(1 << 12);
-  mz = z & ~(1 << 12);
+  /* compute the magnitude of the value, to 12-bit precision. */
+  mv = v & ~(1 << 15);
+  mv = (mv >> 4) & 0x0fff;
 
-  /* act based on the sign of the x-shim word. */
-  if (sx) {
+  /* act based on the sign of the shim word. */
+  if (sv) {
     /* negative: send a negative value into the right dac unit. */
-    spi_write_dac_unit (SPI_DAC_OUTPUT_A, 0);
-    spi_write_dac_unit (SPI_DAC_OUTPUT_B, mx);
+    spi_write_dac_unit (addr0, 0);
+    spi_write_dac_unit (addr1, mv);
   }
   else {
     /* positive: send a positive value into the left dac unit. */
-    spi_write_dac_unit (SPI_DAC_OUTPUT_A, mx);
-    spi_write_dac_unit (SPI_DAC_OUTPUT_B, 0);
-  }
-
-  /* act based on the sign of the y-shim word. */
-  if (sy) {
-    /* negative: send a negative value into the right dac unit. */
-    spi_write_dac_unit (SPI_DAC_OUTPUT_C, 0);
-    spi_write_dac_unit (SPI_DAC_OUTPUT_D, my);
-  }
-  else {
-    /* positive: send a positive value into the left dac unit. */
-    spi_write_dac_unit (SPI_DAC_OUTPUT_C, my);
-    spi_write_dac_unit (SPI_DAC_OUTPUT_D, 0);
-  }
-
-  /* act based on the sign of the z-shim word. */
-  if (sz) {
-    /* negative: send a negative value into the right dac unit. */
-    spi_write_dac_unit (SPI_DAC_OUTPUT_E, 0);
-    spi_write_dac_unit (SPI_DAC_OUTPUT_F, mz);
-  }
-  else {
-    /* positive: send a positive value into the left dac unit. */
-    spi_write_dac_unit (SPI_DAC_OUTPUT_E, mz);
-    spi_write_dac_unit (SPI_DAC_OUTPUT_F, 0);
+    spi_write_dac_unit (addr0, mv);
+    spi_write_dac_unit (addr1, 0);
   }
 }
+

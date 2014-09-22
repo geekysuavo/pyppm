@@ -1,5 +1,5 @@
 
-/* ppm-shims.h: header for handling ppm device shim values.
+/* ppm-prog.h: header for passing around pulse programs.
  * Copyright (C) 2014  Bradley Worley  <geekysuavo@gmail.com>.
  *
  * This program is free software; you can redistribute it and/or
@@ -21,26 +21,32 @@
  */
 
 /* ensure proper inclusion. */
-#ifndef __PPM_SHIMS_H__
-#define __PPM_SHIMS_H__
+#ifndef __PPM_PROG_H__
+#define __PPM_PROG_H__
 
 /* include the PPM header. */
 #include "ppm.h"
 
-/* define a structure for holding shim values. */
-typedef struct ppm_shims_t {
-  /* shim current set-point values. */
-  uint16_t x, y, z;
-
-  /* human-readable versions of the above parameters. */
-  double f_x, f_y, f_z;  /* [-1, +1] */
-} ppm_shims;
+/* define a structure for holding pulse programs. */
+typedef struct ppm_prog_t {
+  /* underlying byte array that mirrors that of the device. */
+  uint8_t *bytes;
+  unsigned int n;
+} ppm_prog;
 
 /* function delarations. */
 
-int ppm_shims_humanize (ppm_shims *shims);
+int ppm_prog_alloc (ppm_prog *pp, unsigned int n);
 
-int ppm_shims_dehumanize (ppm_shims *shims);
+void ppm_prog_empty (ppm_prog *pp);
+
+unsigned int ppm_prog_samples (ppm_prog *pp);
+
+void ppm_prog_timings (ppm_prog *pp, ppm_data *acq);
+
+void ppm_prog_read (FILE *fh, ppm_prog *pp);
+
+void ppm_prog_write (FILE *fh, ppm_prog *pp);
 
 /* ensure proper inclusion. */
 #endif

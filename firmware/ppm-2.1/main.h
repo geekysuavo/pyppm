@@ -23,12 +23,15 @@
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 
-/* include required PPM headers. */
-#include "ppm.h"
+/* include global ppm headers. */
+#include "../lib/seq.h"
 #include "../lib/clk.h"
 #include "../lib/usb.h"
-#include "../lib/macros.h"
 #include "../lib/msg.h"
+
+/* include local ppm headers. */
+#include "ppm.h"
 #include "tcnt.h"
 #include "gpio.h"
 #include "spi.h"
+

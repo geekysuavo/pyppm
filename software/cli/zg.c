@@ -26,33 +26,23 @@
 /* main: application entry point. */
 int main (int argc, char **argv) {
   /* declare required variables. */
-  ppm_parms parms;
   ppm_data acq;
+  ppm_prog pp;
 
-  /* read the parameters from the device. */
-  if (!ppm_rpar (NULL, &parms)) {
+  /* read the pulse program from the device. */
+  if (!ppm_rpp (NULL, &pp)) {
     /* output an error. */
-    fprintf (stderr, "error: rpar failed\n");
+    fprintf (stderr, "error: rpp failed\n");
 
     /* return an error. */
     return 1;
-  }
-
-  /* check if the user passed a scan count. */
-  if (argc == 2 && argv[1] && atoi (argv[1]) > 1) {
-    /* set the number of scans. */
-    parms.ns = atoi (argv[1]);
-  }
-  else {
-    /* set the default scan count. */
-    parms.ns = 1;
   }
 
   /* allow some time for the device to catch up. */
   usleep (200000);
 
   /* acquire a single run the from the device. */
-  if (!ppm_zg (NULL, &parms, &acq)) {
+  if (!ppm_zg (NULL, &pp, &acq)) {
     /* output an error. */
     fprintf (stderr, "error: zg failed\n");
 
@@ -61,7 +51,7 @@ int main (int argc, char **argv) {
   }
 
   /* write the data to the default filename. */
-  if (!ppm_data_write (&acq, "fid")) {
+  if (acq.n && !ppm_data_write (&acq, "fid")) {
     /* output an error and return an error. */
     fprintf (stderr, "error: write failed\n");
     return 1;

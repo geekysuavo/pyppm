@@ -1,5 +1,5 @@
 
-/* wsh.c: source file for the command-line shims write routine.
+/* wpp.c: source file for the command-line pulprog write routine.
  * Copyright (C) 2014  Bradley Worley  <geekysuavo@gmail.com>.
  *
  * This program is free software; you can redistribute it and/or
@@ -26,26 +26,39 @@
 /* main: application entry point. */
 int main (int argc, char **argv) {
   /* declare required variables. */
-  ppm_shims shims;
+  ppm_prog pp;
+  FILE *fh;
 
-  /* ensure the number of arguments is correct. */
-  if (argc != 4) {
-    /* output an error message. */
-    fprintf (stderr, "error: arguments (shims) required\n");
+  /* initialize the program size. */
+  pp.n = 0;
 
-    /* return an error. */
-    return 1;
+  /* determine if an input file was supplied. */
+  if (argc >= 2) {
+    /* open the input file. */
+    fh = fopen (argv[1], "rb");
+
+    /* check if the open was successful. */
+    if (!fh) {
+      /* output an error and return failure. */
+      fprintf (stderr, "error: failed to open '%s'\n", argv[1]);
+      return 1;
+    }
+
+    /* load the hex contents of the pulse program from the file. */
+    ppm_prog_read (fh, &pp);
+
+    /* close the input file. */
+    fclose (fh);
+  }
+  else {
+    /* load the hex contents of the pulse program from standard input. */
+    ppm_prog_read (stdin, &pp);
   }
 
-  /* read the arguments into the parameter structure. */
-  shims.x = atoi (argv[1]);
-  shims.y = atoi (argv[2]);
-  shims.z = atoi (argv[3]);
-
-  /* write the shims to the device. */
-  if (!ppm_wsh (NULL, &shims)) {
-    /* output an error message. */
-    fprintf (stderr, "error: wsh failed\n");
+  /* write the pulse program to the device. */
+  if (!ppm_wpp (NULL, &pp)) {
+    /* output an error. */
+    fprintf (stderr, "error: wpp failed\n");
 
     /* return an error. */
     return 1;

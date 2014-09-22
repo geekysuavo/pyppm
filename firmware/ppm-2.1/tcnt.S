@@ -691,68 +691,9 @@ ovf0_end:
 
 ; ============================================================================
 
-; tcnt_stack_push: pushes all 'call-saved' registers to the stack.
-.global tcnt_stack_push
-tcnt_stack_push:
-  ; push all used registers to the stack for protection.
-  push r0
-  push r2
-  push r3
-  push r4
-  push r5
-  push r6
-  push r7
-  push r8
-  push r9
-  push r10
-  push r11
-  push r12
-  push r13
-  push r14
-  push r15
-  push r16
-  push r28
-  push r29
-  push r30
-  push r31
-
-  ; return.
-  ret
-
-; tcnt_stack_pop: pops all 'call-saved' registers off the stack.
-.global tcnt_stack_pop
-tcnt_stack_pop:
-  ; pop protected registers from the stack.
-  pop r31
-  pop r30
-  pop r29
-  pop r28
-  pop r16
-  pop r15
-  pop r14
-  pop r13
-  pop r12
-  pop r11
-  pop r10
-  pop r9
-  pop r8
-  pop r7
-  pop r6
-  pop r5
-  pop r4
-  pop r3
-  pop r2
-  pop r0
-
-  ; return.
-  ret
-
 ; tcnt_init: initialize timer/counter peripherals.
 .global tcnt_init
 tcnt_init:
-  ; push all used registers to the stack for protection.
-  call tcnt_stack_push
-
   ; configure the timer0 prescaler mux for 4.0 us resolution.
   in r20, _SFR_IO_ADDR(TCCR0B)
   ori r20, (1 << CS01)
@@ -773,8 +714,8 @@ tcnt_init:
   ori r20, (1 << WGM12)
   st Z, r20
 
-  ; pop protected registers off the stack and return.
-  rjmp tcnt_stack_pop
+  ; return.
+  ret
 
 ; ============================================================================
 
@@ -793,7 +734,25 @@ tcnt_init:
 .global tcnt0_run_interp
 tcnt0_run_interp:
   ; push all used registers to the stack for protection.
-  call tcnt_stack_push
+  push r0
+  push r2
+  push r3
+  push r4
+  push r5
+  push r6
+  push r7
+  push r8
+  push r9
+  push r10
+  push r11
+  push r12
+  push r13
+  push r14
+  push r15
+  push r16
+  push r28
+  push r29
+
 
   ; initialize the completion flag.
   ldi r26, 0x00
@@ -823,8 +782,28 @@ tcnt0_run_interp:
   mov r25, r23
   mov r24, r22
 
-  ; pop protected registers from the stack and return.
-  rjmp tcnt_stack_pop
+  ; pop protected registers from the stack.
+  pop r29
+  pop r28
+  pop r16
+  pop r15
+  pop r14
+  pop r13
+  pop r12
+  pop r11
+  pop r10
+  pop r9
+  pop r8
+  pop r7
+  pop r6
+  pop r5
+  pop r4
+  pop r3
+  pop r2
+  pop r0
+
+  ; return.
+  ret
 
 ; tcnt0_run_pulse: execute a timed direct digital synthesis pulse.
 ; kicks off TIMER0_COMPA_vect
@@ -843,7 +822,25 @@ tcnt0_run_interp:
 .global tcnt0_run_pulse
 tcnt0_run_pulse:
   ; push all used registers to the stack for protection.
-  call tcnt_stack_push
+  push r0
+  push r2
+  push r3
+  push r4
+  push r5
+  push r6
+  push r7
+  push r8
+  push r9
+  push r10
+  push r11
+  push r12
+  push r13
+  push r14
+  push r15
+  push r16
+  push r28
+  push r29
+
 
   ; initialize the completion flag.
   ldi r26, 0x00
@@ -886,8 +883,28 @@ tcnt0_run_pulse:
   cp r3, 0x00
   breq .-4
 
-  ; pop protected registers from the stack and return.
-  rjmp tcnt_stack_pop
+  ; pop protected registers from the stack.
+  pop r29
+  pop r28
+  pop r16
+  pop r15
+  pop r14
+  pop r13
+  pop r12
+  pop r11
+  pop r10
+  pop r9
+  pop r8
+  pop r7
+  pop r6
+  pop r5
+  pop r4
+  pop r3
+  pop r2
+  pop r0
+
+  ; return.
+  ret
 
 ; tcnt1_run_acquire: execute a timed data acquisition.
 ; kicks off TIMER1_COMPA_vect
@@ -903,7 +920,25 @@ tcnt0_run_pulse:
 .global tcnt1_run_acquire
 tcnt1_run_acquire:
   ; push all used registers to the stack for protection.
-  call tcnt_stack_push
+  push r0
+  push r2
+  push r3
+  push r4
+  push r5
+  push r6
+  push r7
+  push r8
+  push r9
+  push r10
+  push r11
+  push r12
+  push r13
+  push r14
+  push r15
+  push r16
+  push r28
+  push r29
+
 
   ; initialize the completion flag.
   ldi r26, 0x00
@@ -942,6 +977,26 @@ tcnt1_run_acquire:
   cp r3, 0x00
   breq .-4
 
-  ; pop protected registers from the stack and return.
-  rjmp tcnt_stack_pop
+  ; pop protected registers from the stack.
+  pop r29
+  pop r28
+  pop r16
+  pop r15
+  pop r14
+  pop r13
+  pop r12
+  pop r11
+  pop r10
+  pop r9
+  pop r8
+  pop r7
+  pop r6
+  pop r5
+  pop r4
+  pop r3
+  pop r2
+  pop r0
+
+  ; return.
+  ret
 

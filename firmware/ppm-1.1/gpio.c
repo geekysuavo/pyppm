@@ -1,6 +1,6 @@
 
 /* gpio.c: PPM firmware general purpose input/output source code.
- * Copyright (C) 2013  Bradley Worley  <geekysuavo@gmail.com>
+ * Copyright (C) 2014  Bradley Worley  <geekysuavo@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,6 +55,6 @@ void gpio_init (void) {
   /* signal that general purpose i/o has initialized by turning on both
    * indicator leds.
    */
-  gpio_leda_on ();
-  gpio_ledb_on ();
+  gpio_led_comm_on ();
+  gpio_led_adc_on ();
 }

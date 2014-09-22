@@ -22,20 +22,8 @@
 
 /* begin function declarations: */
 
-void ppm_version (void);
-
-void ppm_reset (void);
-
-void ppm_execute (void);
-
-inline void ppm_tick_pol (void);
+inline void ppm_tick_del (void);
 
 inline void ppm_tick_acq (void);
-
-void ppm_send_parameters (void);
-
-void ppm_receive_parameters (void);
-
-uint16_t ppm_get_acquire_ovf (void);
 
 #endif /* __PPM_PPM_H__ */

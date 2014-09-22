@@ -22,10 +22,16 @@
 
 /* begin function declarations: */
 
-void scb_reset (void);
+void ppm_done (void);
 
-void scb_send_shims (void);
+void ppm_error (void);
 
-void scb_receive_shims (void);
+void ppm_version (void);
+
+void ppm_reset (void);
+
+void ppm_execute (void);
+
+void ppm_pulprog (void);
 
 #endif /* __PPM_SCB_H__ */

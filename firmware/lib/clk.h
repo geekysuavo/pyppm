@@ -23,7 +23,10 @@
 #ifndef __PPM_CLK_H__
 #define __PPM_CLK_H__
 
-/* redefine the PINDIV bit in PLLCSR to match the m32u2 datasheet. */
+/* redefine the PINDIV bit in PLLCSR to match the m32u2 datasheet.
+ * m32u2 datasheet, sec 8.11.6, page 40.
+ * m32u4 datasheet, sec 6.10.2, page 40.
+ */
 #ifndef _AVR_IOM32U4_H_
 #define PINDIV PLLP0
 #endif

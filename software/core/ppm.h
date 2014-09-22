@@ -42,8 +42,7 @@
 
 /* include ppm headers. */
 #include "ppm-hw.h"
-#include "ppm-parms.h"
-#include "ppm-shims.h"
+#include "ppm-prog.h"
 #include "ppm-math.h"
 #include "ppm-data.h"
 #include "ppm-fall.h"

@@ -94,11 +94,11 @@ int ppm_chk (const char *fname) {
 /* ppm_rst: resets the device. */
 int ppm_rst (const char *fname) {
   /* declare required variables. */
-  uint8_t buf[PPM_PARMSG_BYTES];
+  uint8_t buf[PPM_VERMSG_BYTES];
   int i, fd;
 
   /* zero the buffer. */
-  for (i = 0; i < PPM_PARMSG_BYTES; i++)
+  for (i = 0; i < PPM_VERMSG_BYTES; i++)
     buf[i] = 0x00;
 
   /* open the device file. */
@@ -123,102 +123,6 @@ int ppm_rst (const char *fname) {
 
     /* return an error. */
     return 0;
-  }
-
-  /* close the device file. */
-  ppm_device_close (fd);
-
-  /* return success. */
-  return 1;
-}
-
-/* ppm_dactest: tests the dac on the device. */
-int ppm_dactest (const char *fname) {
-  /* declare required variables. */
-  uint8_t buf[PPM_PARMSG_BYTES];
-  int i, fd;
-
-  /* zero the buffer. */
-  for (i = 0; i < PPM_PARMSG_BYTES; i++)
-    buf[i] = 0x00;
-
-  /* open the device file. */
-  if ((fd = ppm_device_open (fname)) == -1) {
-    /* output an error and return failure. */
-    fprintf (stderr, "error: failed to open device file.\n");
-    return 0;
-  }
-
-  /* set up the message buffer. */
-  buf[0] = PPM_MSG_HOST_TEST_DAC;
-
-  /* write the message. */
-  if (write (fd, buf, 1) != 1) {
-    /* output an error. */
-    fprintf (stderr, "error: failed to write '%02x'\n", buf[0]);
-
-    /* close the device file. */
-    ppm_device_close (fd);
-
-    /* return an error. */
-    return 0;
-  }
-
-  /* close the device file. */
-  ppm_device_close (fd);
-
-  /* return success. */
-  return 1;
-}
-
-/* ppm_scbtest: tests the scb dac outputs on the device. */
-int ppm_scbtest (const char *fname) {
-  /* declare required variables. */
-  ppm_shims shims;
-  int i, fd;
-
-  /* open the device file. */
-  if ((fd = ppm_device_open (fname)) == -1) {
-    /* output an error and return failure. */
-    fprintf (stderr, "error: failed to open device file.\n");
-    return 0;
-  }
-
-  /* loop through the test indices. */
-  for (i = 0; i <= 1536; i++) {
-    /* compute the x-shim output value. */
-    if (i <= 1024)
-      shims.f_x = sin (2.0 * M_PI * ((double) i) / 1024.0);
-    else
-      shims.f_x = 0.0;
-
-    /* compute the y-shim output value. */
-    if (i >= 256 && i <= 1280)
-      shims.f_y = sin (2.0 * M_PI * ((double) i) / 1024.0 + 256.0);
-    else
-      shims.f_y = 0.0;
-
-    /* compute the z-shim output value. */
-    if (i >= 512)
-      shims.f_z = sin (2.0 * M_PI * ((double) i) / 1024.0 + 512.0);
-    else
-      shims.f_z = 0.0;
-
-    /* dehumanize the shims. */
-    if (!ppm_shims_dehumanize (&shims)) {
-      /* output an error, close the device file and return failure. */
-      fprintf (stderr, "error: failed to dehumanize shims.\n");
-      ppm_device_close (fd);
-      return 0;
-    }
-
-    /* send the new shim values to the device. */
-    if (!ppm_wsh_fd (fd, &shims)) {
-      /* output an error, close the device file and return failure. */
-      fprintf (stderr, "error: failed to write new shims.\n");
-      ppm_device_close (fd);
-      return 0;
-    }
   }
 
   /* close the device file. */
@@ -279,18 +183,114 @@ int ppm_ver_fd (int fd, int *ver, int *rev) {
   return 1;
 }
 
-/* ppm_rpar_fd: reads parameters from the device. */
-int ppm_rpar_fd (int fd, ppm_parms *parms) {
+/* ppm_szpp_fd: pulse program size request routine. */
+unsigned int ppm_szpp_fd (int fd) {
   /* declare required variables. */
-  uint8_t buf[PPM_PARMSG_BYTES];
-  int i, n;
+  uint8_t buf[PPM_SIZMSG_BYTES];
+  unsigned int sz;
+  int n;
+
+  /* set up the pulprog size request message header. */
+  buf[0] = PPM_MSG_HOST_PP_SIZE;
+
+  /* write the size request message. */
+  if (write (fd, buf, 1) != 1) {
+    /* output an error. */
+    fprintf (stderr, "error: failed to write '%02x'\n", buf[0]);
+    return 0;
+  }
+
+  /* read back the device response. */
+  n = read (fd, buf, PPM_SIZMSG_BYTES);
+
+  /* check the size. */
+  if (n != 4) {
+    /* output an error. */
+    fprintf (stderr, "error: failed to read size (%d != %d)\n",
+             n, PPM_SIZMSG_BYTES);
+
+    /* return failure. */
+    return 0;
+  }
+
+  /* get the number of bytes. */
+  sz = WORD (buf[1], buf[2]);
+
+  /* return success. */
+  return sz;
+}
+
+/* ppm_wpp_fd: pulse program host -> device transfer routine. */
+int ppm_wpp_fd (int fd, ppm_prog *pp) {
+  /* declare required variables. */
+  uint8_t buf[PPM_BIGMSG_BYTES];
+  int i, n, n_buf;
+
+  /* set up the message header. */
+  buf[0] = PPM_MSG_HOST_PP_WRITE;
+
+  /* write the number of bytes. */
+  buf[1] = MSB (pp->n);
+  buf[2] = LSB (pp->n);
+
+  /* set the buffer contents. */
+  for (i = 0; i < pp->n; i++)
+    buf[i + 3] = pp->bytes[i];
+
+  /* write the message. */
+  n_buf = pp->n + 3;
+  if (write (fd, buf, n_buf) != n_buf) {
+    /* output an error. */
+    fprintf (stderr, "error: failed to write '%02x'\n", buf[0]);
+    return 0;
+  }
+
+  /* read back the device response. */
+  n = read (fd, buf, 1);
+
+  /* check the last byte. */
+  if (n != 1 || buf[0] != PPM_MSG_DEVICE_DONE) {
+    /* output an error message. */
+    fprintf (stderr, "error: invalid buffer end '%02x'\n",
+             buf[0]);
+
+    /* return an error. */
+    return 0;
+  }
+
+  /* return success. */
+  return 1;
+}
+
+/* ppm_rpp_fd: pulse program device -> host transfer routine. */
+int ppm_rpp_fd (int fd, ppm_prog *pp) {
+  /* declare required variables. */
+  uint8_t buf[PPM_BIGMSG_BYTES];
+  int i, n, n_read, n_bytes;
+
+  /* request the size of the pulse program array. */
+  n_bytes = ppm_szpp_fd (fd);
+
+  /* ensure the request was fulfilled. */
+  if (!n_bytes) {
+    /* output an error. */
+    fprintf (stderr, "error: failed to get pulprog size\n");
+    return 0;
+  }
+
+  /* allocate the local array memory. */
+  if (!ppm_prog_alloc (pp, n_bytes)) {
+    /* output an error. */
+    fprintf (stderr, "error: failed to allocate pulse program array\n");
+    return 0;
+  }
 
   /* zero the buffer. */
-  for (i = 0; i < PPM_PARMSG_BYTES; i++)
+  for (i = 0; i < PPM_BIGMSG_BYTES; i++)
     buf[i] = 0x00;
 
   /* set up the message buffer. */
-  buf[0] = PPM_MSG_HOST_READ_PARMS;
+  buf[0] = PPM_MSG_HOST_PP_READ;
 
   /* write the message. */
   if (write (fd, buf, 1) != 1) {
@@ -299,189 +299,29 @@ int ppm_rpar_fd (int fd, ppm_parms *parms) {
     return 0;
   }
 
-  /* read back the device response. */
-  n = read (fd, buf, PPM_PARMSG_BYTES);
+  /* attempt to read in the expected number of bytes. */
+  for (n_read = 0; n_read < n_bytes + 2;) {
+    /* read the next chunk of available bytes. */
+    n = read (fd, buf + n_read, n_bytes + 2 - n_read);
 
-  /* see if the number of expected bytes was read. */
-  if (n != PPM_PARMSG_BYTES) {
-    /* output an error. */
-    fprintf (stderr, "error: failed to read parms (%d != %d)\n",
-             n, PPM_PARMSG_BYTES);
-
-    /* return an error. */
-    return 0;
+    /* accumulate the number of bytes read. */
+    n_read += n;
   }
 
   /* check the last byte. */
-  if (buf[PPM_PARMSG_BYTES - 1] != PPM_MSG_DEVICE_DONE) {
+  if (buf[n_bytes + 1] != PPM_MSG_DEVICE_DONE) {
     /* output an error message. */
     fprintf (stderr, "error: invalid buffer end '%02x'\n",
-             buf[PPM_PARMSG_BYTES - 1]);
+             buf[n_bytes + 1]);
 
     /* return an error. */
     return 0;
   }
 
-  /* store the read parameters. */
-  parms->polarize_ovf = WORD (buf[0], buf[1]);
-  parms->acquire_ovf = WORD (buf[2], buf[3]);
-  parms->acquire_count = WORD32 (buf[4], buf[5], buf[6], buf[7]);
-  parms->deadtime_pol = WORD (buf[8], buf[9]);
-  parms->deadtime_acq = WORD (buf[10], buf[11]);
-  parms->ccs_value = WORD (buf[12], buf[13]);
-
-  /* return success. */
-  return 1;
-}
-
-/* ppm_wpar_fd: write parameters to the device. */
-int ppm_wpar_fd (int fd, ppm_parms *parms) {
-  /* declare required variables. */
-  uint8_t buf[PPM_PARMSG_BYTES];
-  int i;
-
-  /* zero the buffer. */
-  for (i = 0; i < PPM_PARMSG_BYTES; i++)
-    buf[i] = 0x00;
-
-  /* set the message byte. */
-  buf[0] = PPM_MSG_HOST_WRITE_PARMS;
-
-  /* set the polarize overflow word. */
-  buf[1] = MSB (parms->polarize_ovf);
-  buf[2] = LSB (parms->polarize_ovf);
-
-  /* set the acquire overflow word. */
-  buf[3] = MSB (parms->acquire_ovf);
-  buf[4] = LSB (parms->acquire_ovf);
-
-  /* set the acquire count word. */
-  buf[5] = BYTE3 (parms->acquire_count);
-  buf[6] = BYTE2 (parms->acquire_count);
-  buf[7] = BYTE1 (parms->acquire_count);
-  buf[8] = BYTE0 (parms->acquire_count);
-
-  /* set the polarize deadtime word. */
-  buf[9] = MSB (parms->deadtime_pol);
-  buf[10] = LSB (parms->deadtime_pol);
-
-  /* set the acquire deadtime word. */
-  buf[11] = MSB (parms->deadtime_acq);
-  buf[12] = LSB (parms->deadtime_acq);
-
-  /* set the current sink set-point. */
-  buf[13] = MSB (parms->ccs_value);
-  buf[14] = LSB (parms->ccs_value);
-
-  /* send the command to the device. */
-  if (write (fd, buf, PPM_PARMSG_BYTES) != PPM_PARMSG_BYTES) {
-    /* output an error. */
-    fprintf (stderr, "error: failed to send command '%02x'\n", buf[0]);
-    return 0;
-  }
-
-  /* read in the response byte from the device. */
-  if (read (fd, buf, 1) != 1 || buf[0] != PPM_MSG_DEVICE_DONE) {
-    /* output an error. */
-    fprintf (stderr, "error: device returned response '%02x'\n", buf[0]);
-
-    /* return an error. */
-    return 0;
-  }
-
-  /* return success. */
-  return 1;
-}
-
-/* ppm_rsh_fd: read shims from the device. */
-int ppm_rsh_fd (int fd, ppm_shims *shims) {
-  /* declare required variables. */
-  uint8_t buf[PPM_SHIMSG_BYTES];
-  int i, n;
-
-  /* zero the buffer. */
-  for (i = 0; i < PPM_SHIMSG_BYTES; i++)
-    buf[i] = 0x00;
-
-  /* set up the message buffer. */
-  buf[0] = PPM_MSG_HOST_READ_SHIMS;
-
-  /* write the message. */
-  if (write (fd, buf, 1) != 1) {
-    /* output an error. */
-    fprintf (stderr, "error: failed to write '%02x'\n", buf[0]);
-    return 0;
-  }
-
-  /* read back the device response. */
-  n = read (fd, buf, PPM_SHIMSG_BYTES);
-
-  /* see if the number of expected bytes was read. */
-  if (n != PPM_SHIMSG_BYTES) {
-    /* output an error. */
-    fprintf (stderr, "error: failed to read shims (%d != %d)\n",
-             n, PPM_SHIMSG_BYTES);
-
-    /* return an error. */
-    return 0;
-  }
-
-  /* check the last byte. */
-  if (buf[PPM_SHIMSG_BYTES - 1] != PPM_MSG_DEVICE_DONE) {
-    /* output an error message. */
-    fprintf (stderr, "error: invalid buffer end '%02x'\n",
-             buf[PPM_SHIMSG_BYTES - 1]);
-
-    /* return an error. */
-    return 0;
-  }
-
-  /* store the read parameters. */
-  shims->x = WORD (buf[0], buf[1]);
-  shims->y = WORD (buf[2], buf[3]);
-  shims->z = WORD (buf[4], buf[5]);
-
-  /* return success. */
-  return 1;
-}
-
-/* ppm_wsh_fd: write shims to the device. */
-int ppm_wsh_fd (int fd, ppm_shims *shims) {
-  /* declare required variables. */
-  uint8_t buf[PPM_SHIMSG_BYTES];
-  int i;
-
-  /* zero the buffer. */
-  for (i = 0; i < PPM_SHIMSG_BYTES; i++)
-    buf[i] = 0x00;
-
-  /* set the message byte. */
-  buf[0] = PPM_MSG_HOST_WRITE_SHIMS;
-
-  /* set the x-shim value. */
-  buf[1] = MSB (shims->x);
-  buf[2] = LSB (shims->x);
-
-  /* set the y-shim value. */
-  buf[3] = MSB (shims->y);
-  buf[4] = LSB (shims->y);
-
-  /* set the z-shim value. */
-  buf[5] = MSB (shims->z);
-  buf[6] = LSB (shims->z);
-
-  /* send the command to the device. */
-  if (write (fd, buf, PPM_SHIMSG_BYTES) != PPM_SHIMSG_BYTES) {
-    /* output an error. */
-    fprintf (stderr, "error: failed to send command '%02x'\n", buf[0]);
-    return 0;
-  }
-
-  /* read the response byte from the device. */
-  if (read (fd, buf, 1) != 1 || buf[0] != PPM_MSG_DEVICE_DONE) {
-    /* output an error. */
-    fprintf (stderr, "error: device returned response '%02x'\n", buf[0]);
-    return 0;
+  /* write the read bytes into the pulprog structure. */
+  for (i = 0; i < n_bytes; i++) {
+    /* store the pulse program byte. */
+    pp->bytes[i] = buf[i + 1];
   }
 
   /* return success. */
@@ -489,91 +329,91 @@ int ppm_wsh_fd (int fd, ppm_shims *shims) {
 }
 
 /* ppm_zg_fd: data acquisition routine. */
-int ppm_zg_fd (int fd, ppm_parms *parms, ppm_data *acq) {
+int ppm_zg_fd (int fd, ppm_prog *pp, ppm_data *acq) {
   /* declare required variables. */
-  uint8_t buf[PPM_PARMSG_BYTES], *samples;
-  int i, n, scan, n_total, n_samples;
-  unsigned int d1;
+  uint8_t buf[PPM_VERMSG_BYTES], *bytes;
+  int i, n, n_read, n_bytes, n_samples;
 
   /* zero the buffer. */
-  for (i = 0; i < PPM_PARMSG_BYTES; i++)
+  for (i = 0; i < PPM_VERMSG_BYTES; i++)
     buf[i] = 0x00;
 
-  /* allocate memory for the acquired samples. */
-  n_samples = 2 * parms->acquire_count;
-  samples = (uint8_t *) calloc (n_samples, sizeof (uint8_t));
+  /* set up the message buffer. */
+  buf[0] = PPM_MSG_HOST_EXECUTE;
 
-  /* make sure the arrays were allocated successfully. */
-  if (!samples) {
-    /* output an error. */
-    fprintf (stderr, "error: failed to allocate sampled data arrays\n");
-    return 0;
-  }
+  /* compute the number of samples we should expect from the pulse program.
+   * the number of read bytes will be twice this value.
+   */
+  n_samples = ppm_prog_samples (pp);
+  n_bytes = 2 * n_samples;
 
-  /* allocate memory for the final acquired values. */
-  if (!ppm_data_alloc (acq, parms->acquire_count)) {
-    /* output an error. */
-    fprintf (stderr, "error: failed to allocate acquisition structure\n");
-    return 0;
-  }
+  /* check if the sample count is nonzero. */
+  if (n_bytes) {
+    /* yes. allocate a temporary storage location. */
+    bytes = (uint8_t *) calloc (n_bytes, sizeof (uint8_t));
 
-  /* calculate the interscan delay. (minimum: 1 second) */
-  if (parms->ccs_value) {
-    /* only delay between scans when polarizing. */
-    d1 = (unsigned int) round ((double) parms->polarize_ovf * 16.384e-3);
-    if (!d1) d1 = 1;
-  }
-  else {
-    /* no delay. */
-    d1 = 0;
-  }
-
-  /* loop for the number of scans. */
-  for (scan = 0; scan < parms->ns; scan++) {
-    /* delay for the polarization time between scans. */
-    if (scan && d1) sleep (d1);
-
-    /* set the execute message. */
-    buf[0] = PPM_MSG_HOST_EXECUTE;
-
-    /* write the execute message to the device. */
-    if (write (fd, buf, 1) != 1) {
+    /* ensure the data array was allocated. */
+    if (!bytes) {
       /* output an error. */
-      fprintf (stderr, "error: failed to send command '%02x'\n", buf[0]);
+      fprintf (stderr, "error: failed to allocate sample array\n");
       return 0;
     }
 
-    /* read back the response from the device. */
-    n = read (fd, &buf[0], 1);
+    /* allocate memory for the final acquired values. */
+    if (!ppm_data_alloc (acq, n_samples)) {
+      /* output an error. */
+      fprintf (stderr, "error: failed to allocate acquisition structure\n");
+      return 0;
+    }
+  }
+  else {
+    /* no. null out the storage location. */
+    bytes = NULL;
+  }
 
-    /* wait for the acquisition to begin. */
-    while (buf[0] != PPM_MSG_DEVICE_BEGIN)
-      n = read (fd, &buf[0], 1);
+  /* write the execute message to the device. */
+  if (write (fd, buf, 1) != 1) {
+    /* output an error. */
+    fprintf (stderr, "error: failed to send command '%02x'\n", buf[0]);
+    return 0;
+  }
 
-    /* attempt to read in the expected number of bytes. */
-    for (n_total = 0; n_total < n_samples;) {
-      /* read the next chunk of available bytes. */
-      n = read (fd, samples + n_total, n_samples - n_total);
+  /* attempt to read in the expected number of bytes. */
+  for (n_read = 0; n_read < n_bytes;) {
+    /* read the next chunk of available bytes. */
+    n = read (fd, bytes + n_read, n_bytes - n_read);
 
-      /* accumulate the number of bytes read. */
-      n_total += n;
+    /* accumulate the number of bytes read. */
+    n_read += n;
+  }
+
+  /* read the last byte from the device. */
+  n = read (fd, buf, 1);
+
+  /* check that it was a success byte. */
+  if (n != 1 || buf[0] != PPM_MSG_DEVICE_DONE) {
+    /* output an error. */
+    fprintf (stderr, "error: failed to run pulse program (%02x)\n", buf[0]);
+    return 0;
+  }
+
+  /* check if acquired samples are ready to be dumped into the acquisition
+   * structure.
+   */
+  if (n_samples) {
+    /* loop through the samples, building the output values. */
+    for (i = 0; i < n_samples; i++) {
+      /* build the voltage value. */
+      acq->v[i] = SAMPLE_VOLT (bytes[2 * i], bytes[2 * i + 1]);
     }
 
-    /* loop through the sampled bytes, building the output values. */
-    for (i = 0; i < parms->acquire_count; i++) {
-      /* build the time and voltage values. */
-      acq->x[i] = SAMPLE_TIME (i);
-      acq->v[i] += SAMPLE_VOLT (samples[2 * i], samples[2 * i + 1]);
-    }
-  } /* scans */
+    /* build the time values in the acquisition structure. */
+    ppm_prog_timings (pp, acq);
 
-  /* loop finally to scale the voltages back to the correct range. */
-  for (i = 0; i < parms->acquire_count; i++)
-    acq->v[i] /= (double) parms->ns;
-
-  /* free the acquired sample memory. */
-  free (samples);
-  samples = NULL;
+    /* free the temporary array. */
+    free (bytes);
+    bytes = NULL;
+  }
 
   /* return success. */
   return 1;
@@ -612,13 +452,13 @@ int ppm_ver (const char *fname, int *ver, int *rev) {
   return ret;
 }
 
-/* ppm_rpar: read parameters from the device. */
-int ppm_rpar (const char *fname, ppm_parms *parms) {
+/* ppm_wpp: pulse program host -> device transfer routine. */
+int ppm_wpp (const char *fname, ppm_prog *pp) {
   /* declare required variables. */
   int fd, ret;
 
   /* output a message. */
-  fprintf (stderr, "RPAR:");
+  fprintf (stderr, "WPP:");
 
   /* open the device file. */
   if ((fd = ppm_device_open (fname)) == -1) {
@@ -629,56 +469,15 @@ int ppm_rpar (const char *fname, ppm_parms *parms) {
     return 0;
   }
 
-  /* run the parameter request code on the file descriptor. */
-  ret = ppm_rpar_fd (fd, parms);
-
-  /* close the device file. */
-  ppm_device_close (fd);
-
-  /* output a message. */
-  if (ret) {
-    /* show the status parameters.. */
-    fprintf (stderr, " %u %u %u %u %u %u OK\n",
-      parms->polarize_ovf,
-      parms->acquire_ovf,
-      parms->acquire_count,
-      parms->deadtime_pol,
-      parms->deadtime_acq,
-      parms->ccs_value);
-  }
-  else
-    fprintf (stderr, " ERR\n");
-
-  /* return the result. */
-  return ret;
-}
-
-/* ppm_wpar: write parameters to the device. */
-int ppm_wpar (const char *fname, ppm_parms *parms) {
-  /* declare required variables. */
-  int fd, ret;
-
-  /* output a message. */
-  fprintf (stderr, "WPAR:");
-
-  /* open the device file. */
-  if ((fd = ppm_device_open (fname)) == -1) {
-    /* output an error. */
-    fprintf (stderr, "error: failed to open device file.\n");
-
-    /* return failure. */
-    return 0;
-  }
-
-  /* run the parameter send code on the file descriptor. */
-  ret = ppm_wpar_fd (fd, parms);
+  /* run the transfer code on the file descriptor. */
+  ret = ppm_wpp_fd (fd, pp);
 
   /* close the device file. */
   ppm_device_close (fd);
 
   /* output a message. */
   if (ret)
-    fprintf (stderr, " OK\n");
+    fprintf (stderr, " %u OK\n", pp->n);
   else
     fprintf (stderr, " ERR\n");
 
@@ -686,13 +485,13 @@ int ppm_wpar (const char *fname, ppm_parms *parms) {
   return ret;
 }
 
-/* ppm_rsh: read shims from the device. */
-int ppm_rsh (const char *fname, ppm_shims *shims) {
+/* ppm_rpp: pulse program device -> host transfer routine. */
+int ppm_rpp (const char *fname, ppm_prog *pp) {
   /* declare required variables. */
   int fd, ret;
 
   /* output a message. */
-  fprintf (stderr, "RSH:");
+  fprintf (stderr, "RPP:");
 
   /* open the device file. */
   if ((fd = ppm_device_open (fname)) == -1) {
@@ -703,58 +502,24 @@ int ppm_rsh (const char *fname, ppm_shims *shims) {
     return 0;
   }
 
-  /* run the shim request code on the file descriptor. */
-  ret = ppm_rsh_fd (fd, shims);
-
-  /* close the device file. */
-  ppm_device_close (fd);
-
-  /* output a message. */
-  if (ret) {
-    /* show the status parameters.. */
-    fprintf (stderr, " %u %u %u OK\n", shims->x, shims->y, shims->z);
-  }
-  else
-    fprintf (stderr, " ERR\n");
-
-  /* return the result. */
-  return ret;
-}
-
-/* ppm_wsh: write shims to the device. */
-int ppm_wsh (const char *fname, ppm_shims *shims) {
-  /* declare required variables. */
-  int fd, ret;
-
-  /* output a message. */
-  fprintf (stderr, "WSH:");
-
-  /* open the device file. */
-  if ((fd = ppm_device_open (fname)) == -1) {
-    /* output an error. */
-    fprintf (stderr, "error: failed to open device file.\n");
-
-    /* return failure. */
-    return 0;
-  }
-
-  /* run the shim send code on the file descriptor. */
-  ret = ppm_wsh_fd (fd, shims);
+  /* run the transfer code on the file descriptor. */
+  ret = ppm_rpp_fd (fd, pp);
 
   /* close the device file. */
   ppm_device_close (fd);
 
   /* output a message. */
   if (ret)
-    fprintf (stderr, " OK\n");
+    fprintf (stderr, " %u OK\n", pp->n);
   else
     fprintf (stderr, " ERR\n");
 
   /* return the result. */
   return ret;
 }
+
 /* ppm_zg: data acquisition routine. */
-int ppm_zg (const char *fname, ppm_parms *parms, ppm_data *acq) {
+int ppm_zg (const char *fname, ppm_prog *pp, ppm_data *acq) {
   /* declare required variables. */
   int fd, ret;
 
@@ -771,7 +536,7 @@ int ppm_zg (const char *fname, ppm_parms *parms, ppm_data *acq) {
   }
 
   /* run the acquisition code on the file descriptor. */
-  ret = ppm_zg_fd (fd, parms, acq);
+  ret = ppm_zg_fd (fd, pp, acq);
 
   /* close the device file. */
   ppm_device_close (fd);

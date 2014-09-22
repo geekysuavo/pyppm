@@ -39,6 +39,6 @@
 
 void spi_init (void);
 
-void spi_write_dac (uint16_t x, uint16_t y, uint16_t z);
+void spi_write_dac_pair (uint16_t addr0, uint16_t addr1, uint16_t v);
 
 #endif /* __PPM_SPI_H__ */

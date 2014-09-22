@@ -1,6 +1,6 @@
 
 /* main.h: PPM firmware main header.
- * Copyright (C) 2013  Bradley Worley  <geekysuavo@gmail.com>
+ * Copyright (C) 2014  Bradley Worley  <geekysuavo@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,15 @@
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 
-/* include required PPM headers. */
-#include "ppm.h"
+/* include global ppm headers. */
+#include "../lib/seq.h"
 #include "../lib/clk.h"
 #include "../lib/usb.h"
 #include "../lib/msg.h"
+
+/* include local ppm headers. */
+#include "ppm.h"
 #include "tcnt.h"
 #include "gpio.h"
 #include "spi.h"
+

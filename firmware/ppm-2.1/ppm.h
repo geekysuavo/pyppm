@@ -22,24 +22,4 @@
 
 /* begin function declarations: */
 
-void ppm_done (void);
-
-void ppm_error (void);
-
-void ppm_version (void);
-
-void ppm_reset (void);
-
-void ppm_execute (void);
-
-void ppm_retune (void);
-
-void ppm_reshim (void);
-
-void ppm_pulprog (void);
-
-inline void ppm_tick_pol (void);
-
-inline void ppm_tick_acq (void);
-
 #endif /* __PPM_PPM_H__ */

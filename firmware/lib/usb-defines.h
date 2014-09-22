@@ -21,7 +21,7 @@
 /* define the manufacturer, product and serial number strings. */
 #define USB_STR_MANUFACT L"Bradley Worley"
 #define USB_STR_PRODUCT  L"PPM-USB"
-#define USB_STR_SERIAL   L"PPMv1r1"
+#define USB_STR_SERIAL   L"PyPPM"
 
 /* define the usb vendor and product id words. */
 #define USB_VID 0x03eb  /* Atmel corporation */
@@ -48,8 +48,13 @@
  */
 #define USB_EP_SIZE_CONTROL 16
 #define USB_EP_SIZE_CDC_ACM 16
+#ifdef _AVR_IOM32U4_H_
 #define USB_EP_SIZE_CDC_RX  64
 #define USB_EP_SIZE_CDC_TX  64
+#else
+#define USB_EP_SIZE_CDC_RX  32
+#define USB_EP_SIZE_CDC_TX  32
+#endif
 
 /* usb-cdc implementation endpoint bank counts. the control (0) and acm (2)
  * endpoints are single-buffered, and the rx/tx endpoints are double-buffered.

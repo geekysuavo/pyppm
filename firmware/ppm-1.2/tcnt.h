@@ -1,6 +1,6 @@
 
 /* tcnt.h: PPM firmware timer/counter peripherals header.
- * Copyright (C) 2013  Bradley Worley  <geekysuavo@gmail.com>
+ * Copyright (C) 2014  Bradley Worley  <geekysuavo@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ void tcnt_init (void);
 
 void tcnt0_start (void);
 
-void tcnt1_start (void);
+void tcnt1_start (uint16_t ovf);
 
 inline void tcnt0_stop (void);
 

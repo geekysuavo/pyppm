@@ -1,5 +1,5 @@
 
-/* rpar.c: source file for the command-line parms read routine.
+/* rpp.c: source file for the command-line pulprog read routine.
  * Copyright (C) 2014  Bradley Worley  <geekysuavo@gmail.com>.
  *
  * This program is free software; you can redistribute it and/or
@@ -26,16 +26,19 @@
 /* main: application entry point. */
 int main (int argc, char **argv) {
   /* declare required variables. */
-  ppm_parms parms;
+  ppm_prog pp;
 
-  /* read the acquisition parms. */
-  if (!ppm_rpar (NULL, &parms)) {
-    /* output an error message. */
-    fprintf (stderr, "error: rpar failed\n");
+  /* read the pulse program from the device. */
+  if (!ppm_rpp (NULL, &pp)) {
+    /* output an error. */
+    fprintf (stderr, "error: rpp failed\n");
 
     /* return an error. */
     return 1;
   }
+
+  /* dump the hex contents of the pulse program. */
+  ppm_prog_write (stdout, &pp);
 
   /* return success. */
   return 0;

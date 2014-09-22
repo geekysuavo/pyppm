@@ -1,6 +1,6 @@
 
 /* main.c: PPM firmware main source code.
- * Copyright (C) 2013  Bradley Worley  <geekysuavo@gmail.com>
+ * Copyright (C) 2014  Bradley Worley  <geekysuavo@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,11 @@
 /* include the main header. */
 #include "main.h"
 
+/* include the message handling source code. */
+#include "../lib/msg.c"
+
 /* main: firmware execution entry point. */
 int main (void) {
-  /* declare a byte for reading command bytes. */
-  uint8_t host_command = 0x00;
-
   /* disable the watchdog timer. */
   MCUSR = 0x00;
   wdt_disable ();
@@ -49,90 +49,27 @@ int main (void) {
   gpio_ldo_enable ();
 
   /* turn off the leds. */
-  gpio_leda_off ();
-  gpio_ledb_off ();
+  gpio_led_comm_off ();
+  gpio_led_adc_off ();
 
   /* flash leds while delaying for a second. */
   _delay_ms (200.0);
-  gpio_leda_on ();
+  gpio_led_comm_on ();
   _delay_ms (200.0);
-  gpio_leda_off ();
+  gpio_led_comm_off ();
   _delay_ms (200.0);
-  gpio_leda_on ();
+  gpio_led_comm_on ();
   _delay_ms (200.0);
-  gpio_leda_off ();
+  gpio_led_comm_off ();
   _delay_ms (200.0);
-  gpio_leda_on ();
+  gpio_led_comm_on ();
   _delay_ms (200.0);
-  gpio_leda_off ();
+  gpio_led_comm_off ();
   
   /* enter the main idle loop. */
-  while (1) {
-    /* wait for the user to open the device node with a terminal emulator
-     * that sets DTR to indicate its ready to receive data.
-     */
-    while (!usb_cdc_control_line_dtr ());
-
-    /* discard bytes received prior to receipt of the DTR signal. */
-    usb_cdc_flush_input ();
-
-    /* turn on the first led to show connection. */
-    gpio_leda_on ();
-
-    /* now sit in a wait state for the next byte. */
-    while (1) {
-      /* try to read a byte from the host. */
-      host_command = usb_cdc_getchar ();
-
-      /* was a byte read from the host? */
-      if (host_command != -1) {
-        /* act based on the host command. */
-        switch (host_command) {
-          /* read parameters. */
-          case PPM_MSG_HOST_READ_PARMS:
-            ppm_send_parameters ();
-            break;
-
-          /* write parameters. */
-          case PPM_MSG_HOST_WRITE_PARMS:
-            ppm_receive_parameters ();
-            break;
-
-          /* execute pulse program. */
-          case PPM_MSG_HOST_EXECUTE:
-            ppm_execute ();
-            break;
-
-          /* read version. */
-          case PPM_MSG_HOST_VERSION:
-            ppm_version ();
-            break;
-
-          /* reset device. */
-          case PPM_MSG_HOST_RESET:
-            ppm_reset ();
-            break;
-
-          /* test dac output. */
-          case PPM_MSG_HOST_TEST_DAC:
-            ppm_test_dac ();
-            break;
-
-          /* read parameters. */
-          default:
-            break;
-        }
-      }
-
-      /* see if the usb has been de-configured or if the user disconnected. */
-      if (!usb_configured () || !usb_cdc_control_line_dtr ()) break;
-    }
-
-    /* turn off the first "connection" led. */
-    _delay_ms (50.0);
-    gpio_leda_off ();
-  }
+  msg_loop ();
 
   /* execution never reaches this point. */
   return 0;
 }
+

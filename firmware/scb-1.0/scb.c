@@ -1,6 +1,6 @@
 
 /* scb.c: SCB firmware main controller source code.
- * Copyright (C) 2013  Bradley Worley  <geekysuavo@gmail.com>
+ * Copyright (C) 2014  Bradley Worley  <geekysuavo@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,80 +19,46 @@
 /* include the main header. */
 #include "main.h"
 
-/* declare global variables for gradient current setpoints.
- *  - i_POL = (Vcc / Rshim) / 0xfff * val
- */
-volatile uint16_t scb_shim_x_val = 0;
-volatile uint16_t scb_shim_y_val = 0;
-volatile uint16_t scb_shim_z_val = 0;
+/* define available pulse sequence elements on this device. */
+#define PPM_PULPROG_HAVE_DEADTIME  1
+// #define PPM_PULPROG_HAVE_DELAY
+// #define PPM_PULPROG_HAVE_POLARIZE
+// #define PPM_PULPROG_HAVE_RELAY
+// #define PPM_PULPROG_HAVE_ACQUIRE
+// #define PPM_PULPROG_HAVE_TX
+// #define PPM_PULPROG_HAVE_TUNE
+#define PPM_PULPROG_HAVE_SHIM_X    1
+#define PPM_PULPROG_HAVE_SHIM_Y    1
+#define PPM_PULPROG_HAVE_SHIM_Z    1
 
-/* scb_reset: resets the device using the watchdog timer. */
-void scb_reset (void) {
-  /* declare required variables. */
+/* include the pulse sequencer source code. */
+#include "../lib/seq.c"
+
+/* ppm_deadtime: runs a deadtime delay function. */
+void ppm_deadtime (uint16_t dt) {
+  /* declare a counter variable. */
   uint8_t i;
 
-  /* flash the led a couple times. */
-  for (i = 0; i < 10; i++) {
-    /* turn off the led. */
-    gpio_leda_off ();
-    _delay_ms (100.0);
-
-    /* turn on the led. */
-    gpio_leda_on ();
-    _delay_ms (100.0);
-  }
-
-  /* enable the watchdog timer. */
-  wdt_enable (WDTO_120MS);
-
-  /* loop and wait for the timer to overflow. */
-  while (1);
+  /* loop 100 times to make the delay effective. */
+  for (i = 0; i < 100; i++)
+    _delay_loop_2 (dt);
 }
 
-/* scb_send_shims: sends the current shim set to the host. */
-void scb_send_shims (void) {
-  /* send the x-gradient current set-point. */
-  usb_cdc_putchar (MSB (scb_shim_x_val));
-  usb_cdc_putchar (LSB (scb_shim_x_val));
-
-  /* send the y-gradient current set-point. */
-  usb_cdc_putchar (MSB (scb_shim_y_val));
-  usb_cdc_putchar (LSB (scb_shim_y_val));
-
-  /* send the z-gradient current set-point. */
-  usb_cdc_putchar (MSB (scb_shim_z_val));
-  usb_cdc_putchar (LSB (scb_shim_z_val));
-
-  /* send the done message. */
-  usb_cdc_putchar (PPM_MSG_DEVICE_DONE);
+/* ppm_setshim_x: changes the value of the shim dac output. */
+inline void ppm_setshim_x (uint16_t shm) {
+  /* write the signed shimming word to the dac spi bus. */
+  spi_write_dac_pair (SPI_DAC_OUTPUT_A, SPI_DAC_OUTPUT_B, shm);
 }
 
-/* scb_receive_shims: reads a new shim set from the host. */
-void scb_receive_shims (void) {
-  /* declare variables to hold read bytes. */
-  int16_t b0, b1;
-
-  /* read the x-gradient current set-point. */
-  b0 = usb_cdc_getchar ();
-  b1 = usb_cdc_getchar ();
-  if (b0 != -1 && b1 != -1)
-    scb_shim_x_val = WORD (b0, b1);
-
-  /* read the y-gradient current set-point. */
-  b0 = usb_cdc_getchar ();
-  b1 = usb_cdc_getchar ();
-  if (b0 != -1 && b1 != -1)
-    scb_shim_y_val = WORD (b0, b1);
-
-  /* read the z-gradient current set-point. */
-  b0 = usb_cdc_getchar ();
-  b1 = usb_cdc_getchar ();
-  if (b0 != -1 && b1 != -1)
-    scb_shim_z_val = WORD (b0, b1);
-
-  /* update the dac output values. */
-  spi_write_dac (scb_shim_x_val, scb_shim_y_val, scb_shim_z_val);
-
-  /* send an acknowledgement that the shims were set. */
-  usb_cdc_putchar (PPM_MSG_DEVICE_DONE);
+/* ppm_setshim_y: changes the value of the shim dac output. */
+inline void ppm_setshim_y (uint16_t shm) {
+  /* write the signed shimming word to the dac spi bus. */
+  spi_write_dac_pair (SPI_DAC_OUTPUT_C, SPI_DAC_OUTPUT_D, shm);
 }
+
+/* ppm_setshim_z: changes the value of the shim dac output. */
+inline void ppm_setshim_z (uint16_t shm) {
+  /* write the signed shimming word to the dac spi bus. */
+  spi_write_dac_pair (SPI_DAC_OUTPUT_E, SPI_DAC_OUTPUT_F, shm);
+}
+
