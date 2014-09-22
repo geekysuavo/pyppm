@@ -86,7 +86,7 @@ attached device's firmware, _e.g._ `(1, 3)` or `(2, 1)`.
 ### Pulse programs
 
 All PyPPM devices have been outfitted with a small portion of memory to hold
-what are known as 'pulse programs'. These pulse programs are a set of byte
+what are known as 'pulse programs'. These pulse programs are sets of byte
 code instructions that tell the microcontroller which commands to execute,
 when to execute them, and with what parameters.
 
@@ -99,8 +99,8 @@ Here's an example:
 
 ```python
 dev.pulprog = [
-  [pyppm.ACQUIRE, 16384, 20],
-  [pyppm.END]
+  [pyppm.ACQUIRE, 16384, 20],  # acquire 16k samples at 20 kS/s
+  [pyppm.END]                  # terminate
 ]
 ```
 
@@ -109,17 +109,17 @@ That's pretty easy, right? The above pulse program acquires 16k samples at
 
 ```python
 dev.pulprog = [
-  [pyppm.ACQUIRE, 16384, 20],
-  [pyppm.RELAY, True],
-  [pyppm.DEADTIME, 1],
-  [pyppm.POLARIZE, True],
-  [pyppm.DELAY, 10],
-  [pyppm.POLARIZE, False],
-  [pyppm.DEADTIME, 1],
-  [pyppm.RELAY, False],
-  [pyppm.DEADTIME, 10],
-  [pyppm.ACQUIRE, 16384, 20],
-  [pyppm.END]
+  [pyppm.ACQUIRE, 16384, 20],  # acquire 16k samples at 20 kS/s
+  [pyppm.RELAY, True],         # switch the coil to the polarization circuit
+  [pyppm.DEADTIME, 1],         # wait for around one millisecond
+  [pyppm.POLARIZE, True],      # switch on hard polarization
+  [pyppm.DELAY, 10],           # wait for exactly ten seconds
+  [pyppm.POLARIZE, False],     # switch off hard polarization
+  [pyppm.DEADTIME, 1],         # wait for around one millisecond
+  [pyppm.RELAY, False],        # switch the coil to the acquisition circuit
+  [pyppm.DEADTIME, 10],        # wait for around ten milliseconds
+  [pyppm.ACQUIRE, 16384, 20],  # acquire again, 16k samples at 20 kS/s
+  [pyppm.END]                  # terminate
 ]
 ```
 
