@@ -23,3 +23,25 @@
 /* include the PPM header. */
 #include "ppm.h"
 
+/* debugf_fn: core function to print a failure/debug message.
+ */
+void debugf_fn (const char *f, const unsigned int l,
+                const char *format, ...) {
+  /* declare required variables. */
+  va_list vl;
+
+  /* initialize the arguments list. */
+  va_start (vl, format);
+
+  /* print the final output string. */
+#ifdef PPM_CORE_VERBOSE
+  char str[1024];
+  vsnprintf (str, 1024, format, vl);
+  fprintf (stderr, "%s:%u: %s\n", f, l, str);
+  fflush (stderr);
+#endif
+
+  /* de-initialize the arguments list. */
+  va_end (vl);
+}
+

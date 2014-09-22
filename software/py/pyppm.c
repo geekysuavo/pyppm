@@ -46,33 +46,15 @@ typedef struct {
   /* ppm device filename. */
   char *fname;
 
-  /* ppm device parameters. */
-  ppm_parms parms;
+  /* ppm hardware version. */
+  int ver, rev;
+
+  /* ppm device pulse program. */
+  unsigned int szpp;
+  ppm_prog pp;
   int fresh;
 }
 PyPPM;
-
-/* PyDict_ContainsString: utility method like PyDict_SetItemString()
- */
-static int
-PyDict_ContainsString (PyObject *p, const char *key) {
-  /* declare required objects. */
-  PyObject *keyobj;
-  int has;
-
-  /* build a python object for the key string. */
-  keyobj = PyUnicode_FromString (key);
-  if (!keyobj) return -1;
-
-  /* check if the dictionary contains the key string. */
-  has = PyDict_Contains (p, keyobj);
-
-  /* decrement the key python object's reference count. */
-  Py_DECREF (keyobj);
-
-  /* return the result. */
-  return has;
-}
 
 /* pyppm_unpack_data: method to unpack a tuple of tuples into an acquisition
  * data structure.
@@ -161,6 +143,10 @@ pyppm_pack_data (ppm_data *dat) {
   PyObject *obj, *x, *v;
   unsigned int i;
   double xi, vi;
+
+  /* check if the data to pack is empty, and return nothing if so. */
+  if (dat->n == 0)
+    Py_RETURN_NONE;
 
   /* create a tuple object to fill with time values. */
   x = PyTuple_New (dat->n);
@@ -368,6 +354,61 @@ pyppm_math_stft (PyObject *self, PyObject *args) {
   return obj;
 }
 
+/* PyPPM_refresh: pulprog refresh method for ppm objects.
+ */
+static int
+PyPPM_refresh (PyPPM *self) {
+  /* check if the pulprog needs to be re-synced from the device. */
+  if (self->fresh)
+    return 1;
+
+  /* open the device to ascertain the pulse program size. */
+  int fd = ppm_device_open (self->fname);
+
+  /* check if the device was opened successfully. */
+  if (fd == -1) {
+    /* throw an exception. */
+    PyErr_SetString (PyExc_IOError, "failed to open device");
+    return 0;
+  }
+
+  /* get the device version information. */
+  if (!ppm_ver_fd (fd, &self->ver, &self->rev)) {
+    /* throw an exception. */
+    PyErr_SetString (PyExc_IOError, "failed to retrieve device version");
+    return 0;
+  }
+
+  /* get the device pulse program array size. */
+  self->szpp = ppm_szpp_fd (fd);
+
+  /* check if the size was retrieved successfully. */
+  if (!self->szpp) {
+    /* throw an exception. */
+    PyErr_SetString (PyExc_IOError, "failed to retrieve pulprog size");
+    return 0;
+  }
+
+  /* attempt to read the pulse program data. */
+  if (!ppm_rpp_fd (fd, &self->pp)) {
+    /* throw an exception. */
+    PyErr_SetString (PyExc_IOError, "failed to retrieve device pulprog");
+    return 0;
+  }
+
+  /* close the device. */
+  ppm_device_close (fd);
+
+  /* wait a while for the device to catch up. */
+  PyPPM_DELAY ();
+
+  /* indicate that the parameters are now synced. */
+  self->fresh = 1;
+
+  /* return success. */
+  return 1;
+}
+
 /* PyPPM_new: allocation method for ppm objects.
  */
 static PyObject*
@@ -383,7 +424,7 @@ PyPPM_new (PyTypeObject *type, PyObject *args, PyObject *keywords) {
     /* initialize the device filename. */
     self->fname = NULL;
 
-    /* initialize the freshness of the parameters. */
+    /* initialize the freshness of the pulprog info. */
     self->fresh = 0;
   }
 
@@ -403,12 +444,9 @@ PyPPM_init (PyPPM *self, PyObject *args, PyObject *keywords) {
                                     &self->fname))
     return -1;
 
-  /* check that the device file is accessible. */
-  if (!ppm_chk (self->fname)) {
-    /* throw an exception. */
-    PyErr_SetString (PyExc_IOError, "failed to open device");
+  /* attempt a device refresh. */
+  if (!PyPPM_refresh (self))
     return -1;
-  }
 
   /* wait a while for the device to catch up. */
   PyPPM_DELAY ();
@@ -440,48 +478,15 @@ PyPPM_repr (PyPPM *self) {
   addy = (long) self;
 
   /* build the representation string. */
-  obj = PyUnicode_FromFormat ("<ppm.PPM '%s' at 0x%x>",
-                              self->fname ? self->fname : PPM_DEVICE_FILENAME,
+  obj = PyUnicode_FromFormat ("<pyppm.PPM v%dr%d '%s' at 0x%x>",
+                              self->ver, self->rev,
+                              self->fname ?
+                                self->fname :
+                                PPM_DEVICE_FILENAME,
                               addy);
 
   /* return the python object. */
   return obj;
-}
-
-/* PyPPM_refresh: parameter refresh method for ppm objects.
- */
-static int
-PyPPM_refresh (PyPPM *self) {
-  /* check if the parameters need to be re-synced from the device. */
-  if (self->fresh)
-    return 1;
-
-  /* attempt to refresh the device. */
-  if (!ppm_rpar (self->fname, &self->parms)) {
-    /* throw an exception. */
-    PyErr_SetString (PyExc_IOError, "failed to retrieve device parameters");
-    return 0;
-  }
-
-  /* attempt to humanize the parameters. */
-  if (!ppm_parms_humanize (&self->parms)) {
-    /* throw an exception. */
-    PyErr_SetString (PyExc_IOError, "failed to convert device parameters");
-    return 0;
-  }
-
-  /* wait a while for the device to catch up. */
-  PyPPM_DELAY ();
-
-  /* ensure that the scan count is at least one. */
-  if (self->parms.ns < 1)
-    self->parms.ns = 1;
-
-  /* indicate that the parameters are now synced. */
-  self->fresh = 1;
-
-  /* return success. */
-  return 1;
 }
 
 /* PyPPM_getfilename: getter method for ppm object 'filename' attributes.
@@ -546,20 +551,39 @@ PyPPM_setfilename (PyPPM *self, PyObject *value, void *closure) {
     return -1;
   }
 
-  /* indicate that the parameters are no longer up to date. */
-  self->fresh = 0;
-
   /* all went well to this point. set the new filename. */
   self->fname = filename;
+
+  /* refresh the device information. */
+  self->fresh = 0;
+  if (!PyPPM_refresh (self))
+    return -1;
 
   /* return success. */
   return 0;
 }
 
-/* PyPPM_getparms: getter method for ppm object 'parms' attributes.
+/* PyPPM_getversion: getter method for ppm object 'version' attributes.
  */
 static PyObject*
-PyPPM_getparms (PyPPM *self, void *closure) {
+PyPPM_getversion (PyPPM *self, void *closure) {
+  /* create and return the major and minor version numbers in a tuple. */
+  return Py_BuildValue ("(ii)", self->ver, self->rev);
+}
+
+/* PyPPM_setversion: setter method for ppm object 'version' attributes.
+ */
+static int
+PyPPM_setversion (PyPPM *self, PyObject *value, void *closure) {
+  /* throw an exception. */
+  PyErr_SetString (PyExc_TypeError, "cannot set version attribute");
+  return -1;
+}
+
+/* PyPPM_getprog: getter method for ppm object 'pulprog' attributes.
+ */
+static PyObject*
+PyPPM_getprog (PyPPM *self, void *closure) {
   /* declare required variables. */
   PyObject *obj;
 
@@ -567,128 +591,57 @@ PyPPM_getparms (PyPPM *self, void *closure) {
   if (!PyPPM_refresh (self))
     return NULL;
 
-  /* initialize a new dictionary object. */
-  obj = PyDict_New ();
+  /* initialize a new list object. */
+  obj = PyList_New (0);
 
-  /* get the scan count parameter. */
-  PyDict_SetItemString (obj, PPM_ACQPARM_NS,
-    PyLong_FromLong (self->parms.ns));
-
-  /* get the polarization time parameter. */
-  PyDict_SetItemString (obj, PPM_ACQPARM_TP,
-    PyFloat_FromDouble (self->parms.f_polarize_ovf));
-
-  /* get the sample rate parameter. */
-  PyDict_SetItemString (obj, PPM_ACQPARM_SR,
-    PyFloat_FromDouble (self->parms.f_acquire_ovf));
-
-  /* get the point count parameter. */
-  PyDict_SetItemString (obj, PPM_ACQPARM_SN,
-    PyLong_FromLong (self->parms.acquire_count));
-
-  /* get the polarization dead-time parameter. */
-  PyDict_SetItemString (obj, PPM_ACQPARM_DTP,
-    PyFloat_FromDouble (self->parms.f_deadtime_pol));
-
-  /* get the acquisition dead-time parameter. */
-  PyDict_SetItemString (obj, PPM_ACQPARM_DTA,
-    PyFloat_FromDouble (self->parms.f_deadtime_acq));
-
-  /* get the polarization current parameter. */
-  PyDict_SetItemString (obj, PPM_ACQPARM_IP,
-    PyFloat_FromDouble (self->parms.f_ccs_value));
+  /* FIXME: implement PyPPM_getprog() */
 
   /* return the python object. */
   return obj;
 }
 
-/* PyPPM_setparms: setter method for ppm object 'parms' attributes.
+/* PyPPM_setprog: setter method for ppm object 'pulprog' attributes.
  */
 static int
-PyPPM_setparms (PyPPM *self, PyObject *value, void *closure) {
+PyPPM_setprog (PyPPM *self, PyObject *value, void *closure) {
   /* ensure the value is defined. */
   if (!value) {
     /* throw an exception. */
-    PyErr_SetString (PyExc_TypeError, "cannot unset the parms attribute");
+    PyErr_SetString (PyExc_TypeError, "cannot unset the pulprog attribute");
     return -1;
   }
 
   /* ensure the value is of the correct type. */
-  if (!PyDict_Check (value)) {
+  if (!PyList_Check (value)) {
     /* raise an error. */
     PyErr_SetString (PyExc_TypeError,
-                     "the parms attribute must be a dictionary");
+                     "the pulprog attribute must be a list");
 
     /* return the exception code. */
     return -1;
   }
 
-  /* check for the required parameter keys. */
-  if (!PyDict_ContainsString (value, PPM_ACQPARM_NS) ||
-      !PyDict_ContainsString (value, PPM_ACQPARM_TP) ||
-      !PyDict_ContainsString (value, PPM_ACQPARM_SR) ||
-      !PyDict_ContainsString (value, PPM_ACQPARM_SN) ||
-      !PyDict_ContainsString (value, PPM_ACQPARM_DTP) ||
-      !PyDict_ContainsString (value, PPM_ACQPARM_DTA) ||
-      !PyDict_ContainsString (value, PPM_ACQPARM_IP)) {
-    /* throw an exception. */
-    PyErr_SetString (PyExc_ValueError, "required parameters not provided");
-    return -1;
-  }
+  /* FIXME: implement PyPPM_setprog() */
 
-  /* set the scan count parameter. */
-  self->parms.ns = PyLong_AsLong (PyDict_GetItemString (value,
-    PPM_ACQPARM_NS));
-
-  /* set the polarization time parameter. */
-  self->parms.f_polarize_ovf = PyFloat_AsDouble (PyDict_GetItemString (value,
-    PPM_ACQPARM_TP));
-
-  /* set the sample rate parameter. */
-  self->parms.f_acquire_ovf = PyFloat_AsDouble (PyDict_GetItemString (value,
-    PPM_ACQPARM_SR));
-
-  /* set the point count parameter. */
-  self->parms.acquire_count = PyLong_AsLong (PyDict_GetItemString (value,
-    PPM_ACQPARM_SN));
-
-  /* set the polarization dead-time parameter. */
-  self->parms.f_deadtime_pol = PyFloat_AsDouble (PyDict_GetItemString (value,
-    PPM_ACQPARM_DTP));
-
-  /* set the acquisition dead-time parameter. */
-  self->parms.f_deadtime_acq = PyFloat_AsDouble (PyDict_GetItemString (value,
-    PPM_ACQPARM_DTA));
-
-  /* set the polarization current parameter. */
-  self->parms.f_ccs_value = PyFloat_AsDouble (PyDict_GetItemString (value,
-    PPM_ACQPARM_IP));
-
-  /* indicate that the parameters are no longer up to date in case the
-   * update fails.
+  /* indicate that the pulse programs on the device and host are
+   * possibly out of sync in case the transfer fails.
    */
   self->fresh = 0;
 
-  /* attempt to dehumanize the device parameters. */
-  if (!ppm_parms_dehumanize (&self->parms)) {
+  /* attempt to push the new pulse program to the device. */
+  if (!ppm_wpp (self->fname, &self->pp)) {
     /* throw an exception. */
-    PyErr_SetString (PyExc_IOError, "failed to convert new device parameters");
-    return -1;
-  }
-
-  /* attempt to push the new parameters to the device. */
-  if (!ppm_wpar (self->fname, &self->parms)) {
-    /* throw an exception. */
-    PyErr_SetString (PyExc_IOError, "failed to write new device parameters");
+    PyErr_SetString (PyExc_IOError, "failed to write new device pulprog");
     return -1;
   }
 
   /* wait a while for the device to catch up. */
   PyPPM_DELAY ();
 
-  /* ensure that the parameters are up to date. */
-  if (!PyPPM_refresh (self))
-    return -1;
+  /* indicate that the pulse programs on the device and host are
+   * back in sync.
+   */
+  self->fresh = 1;
 
   /* return success. */
   return 0;
@@ -698,7 +651,7 @@ PyPPM_setparms (PyPPM *self, PyObject *value, void *closure) {
  */
 static PyObject*
 PyPPM_reset (PyPPM *self, PyObject *args) {
-  /* indicate that the parameters are no longer up to date. */
+  /* indicate that the device information will no longer up to date. */
   self->fresh = 0;
 
   /* attempt to reset the device. */
@@ -715,100 +668,25 @@ PyPPM_reset (PyPPM *self, PyObject *args) {
   Py_RETURN_NONE;
 }
 
-/* PyPPM_getparm: method for getting a parameter from a ppm object.
+/* PyPPM_execute: method for running pulse programs on a ppm object.
  */
 static PyObject*
-PyPPM_getparm (PyPPM *self, PyObject *args) {
-  /* declare required variables. */
-  PyObject *obj, *dict;
-  char *keystr;
-
-  /* attempt to parse the arguments. */
-  if (!PyArg_ParseTuple (args, "z", &keystr))
-    return NULL;
-
-  /* ensure that the parameters are up to date. */
-  if (!PyPPM_refresh (self))
-    return NULL;
-
-  /* get the device parameters as a dictionary. */
-  dict = PyPPM_getparms (self, NULL);
-  if (!dict) return NULL;
-
-  /* see if the requested parameter is available. */
-  if (!PyDict_ContainsString (dict, keystr)) {
-    /* throw an exception. */
-    PyErr_SetString (PyExc_ValueError, "invalid parameter key");
-    return NULL;
-  }
-
-  /* grab out the value of the parameter. */
-  obj = PyDict_GetItemString (dict, keystr);
-
-  /* free the dictionary. */
-  Py_DECREF (dict);
-
-  /* return the parameter as an object. */
-  return obj;
-}
-
-/* PyPPM_setparm: method for setting a parameter in a ppm object.
- */
-static PyObject*
-PyPPM_setparm (PyPPM *self, PyObject *args) {
-  /* declare required variables. */
-  PyObject *obj, *dict;
-  char *keystr;
-
-  /* attempt to parse the arguments. */
-  if (!PyArg_ParseTuple (args, "zO", &keystr, &obj))
-    return NULL;
-
-  /* ensure that the parameters are up to date. */
-  if (!PyPPM_refresh (self))
-    return NULL;
-
-  /* get the device parameters as a dictionary. */
-  dict = PyPPM_getparms (self, NULL);
-  if (!dict) return NULL;
-
-  /* see if the requested parameter is available. */
-  if (!PyDict_ContainsString (dict, keystr)) {
-    /* throw an exception. */
-    PyErr_SetString (PyExc_ValueError, "invalid parameter key");
-    return NULL;
-  }
-
-  /* set the new item in the dictionary. */
-  PyDict_SetItemString (dict, keystr, obj);
-
-  /* attempt to set the parameters. */
-  if (PyPPM_setparms (self, dict, NULL) < 0)
-    return NULL;
-
-  /* free the dictionary. */
-  Py_DECREF (dict);
-
-  /* return nothing. */
-  Py_RETURN_NONE;
-}
-
-/* PyPPM_acquire: method for acquiring data from a ppm object.
- */
-static PyObject*
-PyPPM_acquire (PyPPM *self, PyObject *args) {
+PyPPM_execute (PyPPM *self, PyObject *args) {
   /* declare required variables. */
   PyObject *obj;
   ppm_data acq;
 
+  /* initialize the acquisition sample count. */
+  acq.n = 0;
+
   /* ensure that the parameters are up to date. */
   if (!PyPPM_refresh (self))
     return NULL;
 
-  /* attempt to acquire a set of scans from the device. */
-  if (!ppm_zg (self->fname, &self->parms, &acq)) {
+  /* attempt to execute a pulse program the device. */
+  if (!ppm_zg (self->fname, &self->pp, &acq)) {
     /* throw an exception. */
-    PyErr_SetString (PyExc_IOError, "failed to perform acquisition");
+    PyErr_SetString (PyExc_IOError, "failed to execute pulprog");
     return NULL;
   }
 
@@ -831,22 +709,12 @@ static PyMethodDef PyPPM_methods[] = {
   { "reset",
     (PyCFunction) PyPPM_reset,
     METH_VARARGS,
-    "executes a hardware reset of the device"
+    "performs a hardware reset of the device"
   },
-  { "getparm",
-    (PyCFunction) PyPPM_getparm,
+  { "execute",
+    (PyCFunction) PyPPM_execute,
     METH_VARARGS,
-    "returns a single device acquisition parameter"
-  },
-  { "setparm",
-    (PyCFunction) PyPPM_setparm,
-    METH_VARARGS,
-    "stores a single device acquisition parameter"
-  },
-  { "acquire",
-    (PyCFunction) PyPPM_acquire,
-    METH_VARARGS,
-    "performs the acquisition of a set number of scans, or just one scan"
+    "executes the pulse program stored on the device"
   },
   { NULL }
 };
@@ -860,10 +728,16 @@ static PyGetSetDef PyPPM_getset[] = {
     "the device filename",
     NULL
   },
-  { "parms",
-    (getter) PyPPM_getparms,
-    (setter) PyPPM_setparms,
-    "the device acquisition parameters",
+  { "version",
+    (getter) PyPPM_getversion,
+    (setter) PyPPM_setversion,
+    "the device firmware version",
+    NULL
+  },
+  { "pulprog",
+    (getter) PyPPM_getprog,
+    (setter) PyPPM_setprog,
+    "the device pulse program",
     NULL
   },
   { NULL }
@@ -1002,26 +876,44 @@ initpyppm (void) {
     return;
 #endif
 
-  /* initialize the scan count module string. */
-  PyModule_AddStringConstant (pyppm, "SCAN_COUNT", PPM_ACQPARM_NS);
+  /* pulprog element: dead time. */
+  PyModule_AddIntConstant (pyppm, "DEADTIME", PPM_PULPROG_DEADTIME);
 
-  /* initialize the polarization time module string. */
-  PyModule_AddStringConstant (pyppm, "POLARIZE_TIME", PPM_ACQPARM_TP);
+  /* pulprog element: delay. */
+  PyModule_AddIntConstant (pyppm, "DELAY", PPM_PULPROG_DELAY);
 
-  /* initialize the sample rate module string. */
-  PyModule_AddStringConstant (pyppm, "SAMPLE_RATE", PPM_ACQPARM_SR);
+  /* pulprog element: polarization. */
+  PyModule_AddIntConstant (pyppm, "POLARIZE", PPM_PULPROG_POLARIZE);
 
-  /* initialize the point count module string. */
-  PyModule_AddStringConstant (pyppm, "POINT_COUNT", PPM_ACQPARM_SN);
+  /* pulprog element: relay. */
+  PyModule_AddIntConstant (pyppm, "RELAY", PPM_PULPROG_RELAY);
 
-  /* initialize the polarization dead-time module string. */
-  PyModule_AddStringConstant (pyppm, "POLARIZE_DEAD_TIME", PPM_ACQPARM_DTP);
+  /* pulprog element: acquisition. */
+  PyModule_AddIntConstant (pyppm, "ACQUIRE", PPM_PULPROG_ACQUIRE);
 
-  /* initialize the acquisition dead-time module string. */
-  PyModule_AddStringConstant (pyppm, "ACQUIRE_DEAD_TIME", PPM_ACQPARM_DTA);
+  /* pulprog element: tx rising edge. */
+  PyModule_AddIntConstant (pyppm, "TX_RISE", PPM_PULPROG_TXRISE);
 
-  /* initialize the polarization current module string. */
-  PyModule_AddStringConstant (pyppm, "POLARIZE_CURRENT", PPM_ACQPARM_IP);
+  /* pulprog element: tx falling edge. */
+  PyModule_AddIntConstant (pyppm, "TX_FALL", PPM_PULPROG_TXFALL);
+
+  /* pulprog element: tx pulse. */
+  PyModule_AddIntConstant (pyppm, "TX_PULSE", PPM_PULPROG_TXPULSE);
+
+  /* pulprog element: tuning. */
+  PyModule_AddIntConstant (pyppm, "TUNE", PPM_PULPROG_TUNE);
+
+  /* pulprog element: x-shim. */
+  PyModule_AddIntConstant (pyppm, "SHIM_X", PPM_PULPROG_SHIM_X);
+
+  /* pulprog element: y-shim. */
+  PyModule_AddIntConstant (pyppm, "SHIM_Y", PPM_PULPROG_SHIM_Y);
+
+  /* pulprog element: z-shim. */
+  PyModule_AddIntConstant (pyppm, "SHIM_Z", PPM_PULPROG_SHIM_Z);
+
+  /* pulprog element: end. */
+  PyModule_AddIntConstant (pyppm, "END", PPM_PULPROG_END);
 
   /* return the initialized module. */
 #if PY_MAJOR_VERSION >= 3

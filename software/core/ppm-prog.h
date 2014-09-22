@@ -34,11 +34,16 @@ typedef struct ppm_prog_t {
   unsigned int n;
 } ppm_prog;
 
+/* define a pulse program iterator callback function. */
+typedef void (* ppm_prog_iterator) (uint8_t cmd, uint8_t *args, void *pdata);
+
 /* function delarations. */
 
 int ppm_prog_alloc (ppm_prog *pp, unsigned int n);
 
 void ppm_prog_empty (ppm_prog *pp);
+
+void ppm_prog_iterate (ppm_prog *pp, ppm_prog_iterator fn, void *pdata);
 
 unsigned int ppm_prog_samples (ppm_prog *pp);
 

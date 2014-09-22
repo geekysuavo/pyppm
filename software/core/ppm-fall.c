@@ -94,8 +94,8 @@ int ppm_fall_write (ppm_fall *wfall, const char *fname) {
   /* ensure the file was opened. */
   if (!fh) {
     /* output an error. */
-    fprintf (stderr, "error: failed to open '%s' for writing\n",
-             fname ? fname : "wf");
+    debugf ("failed to open '%s' for writing",
+            fname ? fname : "wf");
 
     /* return an error. */
     return 0;

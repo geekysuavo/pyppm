@@ -42,7 +42,7 @@ int ppm_device_open (const char *fname) {
   /* ensure the file was opened. */
   if (fd == -1) {
     /* output an error. */
-    fprintf (stderr, "error: failed to open '%s'\n", filename);
+    debugf ("failed to open '%s'", filename);
 
     /* return an error. */
     return -1;
@@ -104,7 +104,7 @@ int ppm_rst (const char *fname) {
   /* open the device file. */
   if ((fd = ppm_device_open (fname)) == -1) {
     /* output an error. */
-    fprintf (stderr, "error: failed to open device file.\n");
+    debugf ("failed to open device file");
 
     /* return failure. */
     return 0;
@@ -116,7 +116,7 @@ int ppm_rst (const char *fname) {
   /* write the message. */
   if (write (fd, buf, 1) != 1) {
     /* output an error. */
-    fprintf (stderr, "error: failed to write '%02x'\n", buf[0]);
+    debugf ("failed to write '%02x'", buf[0]);
 
     /* close the device file. */
     ppm_device_close (fd);
@@ -148,7 +148,7 @@ int ppm_ver_fd (int fd, int *ver, int *rev) {
   /* write the message. */
   if (write (fd, buf, 1) != 1) {
     /* output an error. */
-    fprintf (stderr, "error: failed to write '%02x'\n", buf[0]);
+    debugf ("failed to write '%02x'", buf[0]);
     return 0;
   }
 
@@ -158,8 +158,8 @@ int ppm_ver_fd (int fd, int *ver, int *rev) {
   /* see if the number of expected bytes was read. */
   if (n != PPM_VERMSG_BYTES) {
     /* output an error. */
-    fprintf (stderr, "error: failed to read version (%d != %d)\n",
-             n, PPM_VERMSG_BYTES);
+    debugf ("failed to read version (%d != %d)",
+            n, PPM_VERMSG_BYTES);
 
     /* return an error. */
     return 0;
@@ -168,8 +168,8 @@ int ppm_ver_fd (int fd, int *ver, int *rev) {
   /* check the last byte. */
   if (buf[PPM_VERMSG_BYTES - 1] != PPM_MSG_DEVICE_DONE) {
     /* output an error message. */
-    fprintf (stderr, "error: invalid buffer end '%02x'\n",
-             buf[PPM_VERMSG_BYTES - 1]);
+    debugf ("invalid buffer end '%02x'",
+            buf[PPM_VERMSG_BYTES - 1]);
 
     /* return an error. */
     return 0;
@@ -196,7 +196,7 @@ unsigned int ppm_szpp_fd (int fd) {
   /* write the size request message. */
   if (write (fd, buf, 1) != 1) {
     /* output an error. */
-    fprintf (stderr, "error: failed to write '%02x'\n", buf[0]);
+    debugf ("failed to write '%02x'", buf[0]);
     return 0;
   }
 
@@ -206,8 +206,8 @@ unsigned int ppm_szpp_fd (int fd) {
   /* check the size. */
   if (n != 4) {
     /* output an error. */
-    fprintf (stderr, "error: failed to read size (%d != %d)\n",
-             n, PPM_SIZMSG_BYTES);
+    debugf ("failed to read size (%d != %d)",
+            n, PPM_SIZMSG_BYTES);
 
     /* return failure. */
     return 0;
@@ -241,7 +241,7 @@ int ppm_wpp_fd (int fd, ppm_prog *pp) {
   n_buf = pp->n + 3;
   if (write (fd, buf, n_buf) != n_buf) {
     /* output an error. */
-    fprintf (stderr, "error: failed to write '%02x'\n", buf[0]);
+    debugf ("failed to write '%02x'", buf[0]);
     return 0;
   }
 
@@ -250,11 +250,8 @@ int ppm_wpp_fd (int fd, ppm_prog *pp) {
 
   /* check the last byte. */
   if (n != 1 || buf[0] != PPM_MSG_DEVICE_DONE) {
-    /* output an error message. */
-    fprintf (stderr, "error: invalid buffer end '%02x'\n",
-             buf[0]);
-
-    /* return an error. */
+    /* output an error message and return failure. */
+    debugf ("invalid buffer end '%02x'", buf[0]);
     return 0;
   }
 
@@ -274,14 +271,14 @@ int ppm_rpp_fd (int fd, ppm_prog *pp) {
   /* ensure the request was fulfilled. */
   if (!n_bytes) {
     /* output an error. */
-    fprintf (stderr, "error: failed to get pulprog size\n");
+    debugf ("failed to get pulprog size");
     return 0;
   }
 
   /* allocate the local array memory. */
   if (!ppm_prog_alloc (pp, n_bytes)) {
     /* output an error. */
-    fprintf (stderr, "error: failed to allocate pulse program array\n");
+    debugf ("failed to allocate pulse program array");
     return 0;
   }
 
@@ -295,7 +292,7 @@ int ppm_rpp_fd (int fd, ppm_prog *pp) {
   /* write the message. */
   if (write (fd, buf, 1) != 1) {
     /* output an error. */
-    fprintf (stderr, "error: failed to write '%02x'\n", buf[0]);
+    debugf ("failed to write '%02x'", buf[0]);
     return 0;
   }
 
@@ -311,8 +308,8 @@ int ppm_rpp_fd (int fd, ppm_prog *pp) {
   /* check the last byte. */
   if (buf[n_bytes + 1] != PPM_MSG_DEVICE_DONE) {
     /* output an error message. */
-    fprintf (stderr, "error: invalid buffer end '%02x'\n",
-             buf[n_bytes + 1]);
+    debugf ("invalid buffer end '%02x'",
+            buf[n_bytes + 1]);
 
     /* return an error. */
     return 0;
@@ -355,14 +352,14 @@ int ppm_zg_fd (int fd, ppm_prog *pp, ppm_data *acq) {
     /* ensure the data array was allocated. */
     if (!bytes) {
       /* output an error. */
-      fprintf (stderr, "error: failed to allocate sample array\n");
+      debugf ("failed to allocate sample array");
       return 0;
     }
 
     /* allocate memory for the final acquired values. */
     if (!ppm_data_alloc (acq, n_samples)) {
       /* output an error. */
-      fprintf (stderr, "error: failed to allocate acquisition structure\n");
+      debugf ("failed to allocate acquisition structure");
       return 0;
     }
   }
@@ -374,7 +371,7 @@ int ppm_zg_fd (int fd, ppm_prog *pp, ppm_data *acq) {
   /* write the execute message to the device. */
   if (write (fd, buf, 1) != 1) {
     /* output an error. */
-    fprintf (stderr, "error: failed to send command '%02x'\n", buf[0]);
+    debugf ("failed to send command '%02x'", buf[0]);
     return 0;
   }
 
@@ -393,7 +390,7 @@ int ppm_zg_fd (int fd, ppm_prog *pp, ppm_data *acq) {
   /* check that it was a success byte. */
   if (n != 1 || buf[0] != PPM_MSG_DEVICE_DONE) {
     /* output an error. */
-    fprintf (stderr, "error: failed to run pulse program (%02x)\n", buf[0]);
+    debugf ("failed to run pulse program (%02x)", buf[0]);
     return 0;
   }
 
@@ -424,13 +421,10 @@ int ppm_ver (const char *fname, int *ver, int *rev) {
   /* declare required variables. */
   int fd, ret;
 
-  /* output a message. */
-  fprintf (stderr, "VER:");
-
   /* open the device file. */
   if ((fd = ppm_device_open (fname)) == -1) {
     /* output an error. */
-    fprintf (stderr, "error: failed to open device file.\n");
+    debugf ("failed to open device file");
 
     /* return failure. */
     return 0;
@@ -444,9 +438,9 @@ int ppm_ver (const char *fname, int *ver, int *rev) {
 
   /* output a message. */
   if (ret)
-    fprintf (stdout, " %d.%d\n", *ver, *rev);
+    debugf ("VER: %d.%d OK", *ver, *rev);
   else
-    fprintf (stderr, " ERR\n");
+    debugf ("VER: ERR");
 
   /* return the result. */
   return ret;
@@ -457,13 +451,10 @@ int ppm_wpp (const char *fname, ppm_prog *pp) {
   /* declare required variables. */
   int fd, ret;
 
-  /* output a message. */
-  fprintf (stderr, "WPP:");
-
   /* open the device file. */
   if ((fd = ppm_device_open (fname)) == -1) {
     /* output an error. */
-    fprintf (stderr, "error: failed to open device file.\n");
+    debugf ("failed to open device file");
 
     /* return failure. */
     return 0;
@@ -477,9 +468,9 @@ int ppm_wpp (const char *fname, ppm_prog *pp) {
 
   /* output a message. */
   if (ret)
-    fprintf (stderr, " %u OK\n", pp->n);
+    debugf ("WPP: %u OK", pp->n);
   else
-    fprintf (stderr, " ERR\n");
+    debugf ("WPP: ERR");
 
   /* return the result. */
   return ret;
@@ -490,13 +481,10 @@ int ppm_rpp (const char *fname, ppm_prog *pp) {
   /* declare required variables. */
   int fd, ret;
 
-  /* output a message. */
-  fprintf (stderr, "RPP:");
-
   /* open the device file. */
   if ((fd = ppm_device_open (fname)) == -1) {
     /* output an error. */
-    fprintf (stderr, "error: failed to open device file.\n");
+    debugf ("failed to open device file");
 
     /* return failure. */
     return 0;
@@ -510,9 +498,9 @@ int ppm_rpp (const char *fname, ppm_prog *pp) {
 
   /* output a message. */
   if (ret)
-    fprintf (stderr, " %u OK\n", pp->n);
+    debugf ("RPP: %u OK", pp->n);
   else
-    fprintf (stderr, " ERR\n");
+    debugf ("RPP ERR");
 
   /* return the result. */
   return ret;
@@ -523,13 +511,10 @@ int ppm_zg (const char *fname, ppm_prog *pp, ppm_data *acq) {
   /* declare required variables. */
   int fd, ret;
 
-  /* output a message. */
-  fprintf (stderr, "ZG:");
-
   /* open the device file. */
   if ((fd = ppm_device_open (fname)) == -1) {
     /* output an error. */
-    fprintf (stderr, "error: failed to open device file.\n");
+    debugf ("failed to open device file");
 
     /* return failure. */
     return 0;
@@ -543,9 +528,9 @@ int ppm_zg (const char *fname, ppm_prog *pp, ppm_data *acq) {
 
   /* output a message. */
   if (ret)
-    fprintf (stderr, " OK\n");
+    debugf ("ZG: %u OK", acq->n);
   else
-    fprintf (stderr, " ERR\n");
+    debugf ("ZG: ERR");
 
   /* return the result. */
   return ret;

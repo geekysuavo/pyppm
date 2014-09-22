@@ -115,7 +115,7 @@ int hrft (double *x, unsigned int n, double *y, unsigned int nft,
   /* ensure the arrays were allocated. */
   if (!re || !im) {
     /* print an error and return failure. */
-    fprintf (stderr, "error: failed to allocate hrft arrays\n");
+    debugf ("failed to allocate hrft arrays");
     return 0;
   }
 
@@ -189,7 +189,7 @@ int ppm_fft (ppm_data *tacq, ppm_data *facq) {
   /* allocate memory for the final calculated values. */
   if (!ppm_data_alloc (facq, N >> 1)) {
     /* output an error. */
-    fprintf (stderr, "error: failed to allocate acquisition structure\n");
+    debugf ("failed to allocate acquisition structure");
 
     /* return an error. */
     return 0;
@@ -201,7 +201,7 @@ int ppm_fft (ppm_data *tacq, ppm_data *facq) {
   /* ensure the temporary array was created. */
   if (!re) {
     /* output an error. */
-    fprintf (stderr, "error: failed to allocate temporary fft array\n");
+    debugf ("failed to allocate temporary fft array");
 
     /* free the final calculated values. */
     ppm_data_empty (facq);
@@ -254,7 +254,7 @@ int ppm_hrft (ppm_data *tacq, ppm_data *facq, double f1, double f2) {
   /* allocate memory for the final calculated values. */
   if (!ppm_data_alloc (facq, nft)) {
     /* output an error. */
-    fprintf (stderr, "error: failed to allocate acquisition structure\n");
+    debugf ("failed to allocate acquisition structure");
 
     /* return an error. */
     return 0;
@@ -266,7 +266,7 @@ int ppm_hrft (ppm_data *tacq, ppm_data *facq, double f1, double f2) {
   /* ensure the temp array was allocated. */
   if (!wx) {
     /* output an error and fail. */
-    fprintf (stderr, "error: failed to allocated temporary array\n");
+    debugf ("failed to allocated temporary array");
     return 0;
   }
 
@@ -308,7 +308,7 @@ int ppm_wfall (ppm_data *tacq, ppm_fall *wfall) {
   /* allocate memory for the final calculated values. */
   if (!ppm_fall_alloc (wfall, nf, nt)) {
     /* output an error. */
-    fprintf (stderr, "error: failed to allocate waterfall structure\n");
+    debugf ("failed to allocate waterfall structure");
 
     /* return an error. */
     return 0;
@@ -321,7 +321,7 @@ int ppm_wfall (ppm_data *tacq, ppm_fall *wfall) {
   /* ensure the temporary array was created. */
   if (!re || !w) {
     /* output an error. */
-    fprintf (stderr, "error: failed to allocate temporary fft array\n");
+    debugf ("failed to allocate temporary fft array");
 
     /* free the final calculated values. */
     ppm_fall_empty (wfall);

@@ -13,6 +13,9 @@ packages: sndfile.pc
 CFLAGS+= $(call pkg_cflags,sndfile) -DHAVE_SNDFILE
 LDFLAGS+= $(call pkg_libs,sndfile)
 
+# add in verbosity compilation flags.
+CFLAGS+= -DPPM_CORE_VERBOSE
+
 # define a rule to install all command-line tools into the path.
 install:
 	@for target in $(TARGETS); do \

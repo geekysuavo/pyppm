@@ -23,9 +23,6 @@
 /* include the PPM header. */
 #include "ppm.h"
 
-/* define a pulse program iterator callback function. */
-typedef void (* ppm_prog_iterator) (uint8_t cmd, uint8_t *args, void *pdata);
-
 /* define a structure to hold command iteration information.
  */
 typedef struct ppm_cmd_t {

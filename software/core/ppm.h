@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -54,7 +55,15 @@
 /* define the proton gyromagnetic ratio. */
 #define GAMMPROT 2.675222005e+8
 
+/* define a debug function. */
+#define debugf(...) \
+  debugf_fn (__FILE__, __LINE__, __VA_ARGS__)
+
 /* function delarations. */
+
+void debugf_fn (const char *f, const unsigned int l,
+                const char *format, ...)
+  __attribute__ ((format (printf, 3, 4)));
 
 /* ensure proper inclusion. */
 #endif

@@ -75,8 +75,8 @@ int ppm_data_read (ppm_data *acq, const char *fname) {
   /* ensure the file was opened. */
   if (!fh) {
     /* output an error message. */
-    fprintf (stderr, "error: failed to open '%s' for reading\n",
-             fname ? fname : "data");
+    debugf ("failed to open '%s' for reading",
+            fname ? fname : "data");
 
     /* return an error. */
     return 0;
@@ -109,7 +109,7 @@ int ppm_data_read (ppm_data *acq, const char *fname) {
         /* ensure the arrays were (re)allocated. */
         if (!acq->x || !acq->v) {
           /* output an error message. */
-          fprintf (stderr, "failed to allocate data matrices\n");
+          debugf ("failed to allocate data matrices");
           return 0;
         }
 
@@ -139,8 +139,8 @@ int ppm_data_write (ppm_data *acq, const char *fname) {
   /* ensure the file was opened. */
   if (!fh) {
     /* output an error. */
-    fprintf (stderr, "error: failed to open '%s' for writing\n",
-             fname ? fname : "data");
+    debugf ("failed to open '%s' for writing",
+            fname ? fname : "data");
 
     /* return an error. */
     return 0;
@@ -183,8 +183,8 @@ int ppm_data_write_audio (ppm_data *acq, const char *fname) {
   /* see if the file was opened. */
   if (!sfh) {
     /* output an error message. */
-    fprintf (stderr, "error: failed to open '%s': %s\n",
-             fname, sf_strerror (NULL));
+    debugf ("failed to open '%s': %s",
+            fname, sf_strerror (NULL));
 
     /* return failure. */
     return 0;
@@ -202,8 +202,8 @@ int ppm_data_write_audio (ppm_data *acq, const char *fname) {
   /* check if the number of output bytes matches the desired number. */
   if (count != n) {
     /* output an error message. */
-    fprintf (stderr, "error: failed to write all bytes (%ld != %ld)\n",
-             (long) count, (long) n);
+    debugf ("failed to write all bytes (%ld != %ld)",
+            (long) count, (long) n);
 
     /* re-scale the fid data to the original bounds. */
     for (i = 0; i < acq->n; i++) acq->v[i] *= 2.5;
