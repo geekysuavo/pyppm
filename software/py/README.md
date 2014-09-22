@@ -81,60 +81,99 @@ print(dev.version)
 ```
 
 A proper response is a 2-tuple containing the major and minor version of the
-attached device's firmware, _e.g._ `(1, 3)`.
+attached device's firmware, _e.g._ `(1, 3)` or `(2, 1)`.
 
-### Acquisition parameters
+### Pulse programs
 
-If the connected hardware is a PyPPMv1, you can read and/or modify the
-acquisition parameters using the `parms` dictionary:
+All PyPPM devices have been outfitted with a small portion of memory to hold
+what are known as 'pulse programs'. These pulse programs are a set of byte
+code instructions that tell the microcontroller which commands to execute,
+when to execute them, and with what parameters.
 
-```python
-par = dev.parms
-par[pyppm.SCAN_COUNT] = 4
-dev.parms = par
-```
+But don't worry, you won't ever see the byte code instructions if you don't
+want to: the `pyppm` Python module compiles and decompiles these instructions
+on-the-fly any time they are needed. In `pyppm`, pulse programs are constructed
+as lists of lists, where each inner list is a command with its arguments.
 
-Note that direct modification of a single element in the dictionary does not
-work. _e.g._:
-
-```python
-dev.parms[pyppm.SCAN_COUNT] = 4   # THIS DOES NOT WORK!
-```
-
-The way to modify one parameter at a time is using the `setparm` method:
+Here's an example:
 
 ```python
-dev.setparm(pyppm.SCAN_COUNT, 4)
+dev.pulprog = [
+  [pyppm.ACQUIRE, 16384, 20],
+  [pyppm.END]
+]
 ```
 
-The PyPPMv1 hardware boots up with a sane set of default acquisition
-parameters. Using these parameters will result in a one-second polarization
-and 16,384 acquired data points at 20 kS/s. If you want to run without
-polarization, the following two commands will turn it off on a PyPPMv1
-device:
+That's pretty easy, right? The above pulse program acquires 16k samples at
+20 kS/s and terminates. Here's a more complicated example:
 
 ```python
-dev.setparm(pyppm.POLARIZE_CURRENT, 0)
-dev.setparm(pyppm.POLARIZE_TIME, 0)
+dev.pulprog = [
+  [pyppm.ACQUIRE, 16384, 20],
+  [pyppm.RELAY, True],
+  [pyppm.DEADTIME, 1],
+  [pyppm.POLARIZE, True],
+  [pyppm.DELAY, 10],
+  [pyppm.POLARIZE, False],
+  [pyppm.DEADTIME, 1],
+  [pyppm.RELAY, False],
+  [pyppm.DEADTIME, 10],
+  [pyppm.ACQUIRE, 16384, 20],
+  [pyppm.END]
+]
 ```
+
+The above pulse program just acquires a background 'no-polarization' signal,
+then polarizes for ten seconds and acquires a 'with-polarization signal. If
+we run this pulse program...
+
+```python
+(t, a) = dev.execute()
+```
+
+... we'll get the two acquisitions serialized end-to-end in `t` and `a`. Of
+course, they can be teased apart without too much worry:
+
+```python
+t0 = t[0 : 16384]
+a0 = a[0 : 16384]
+t1 = t[16384 : 32768]
+a1 = a[16384 : 32768]
+```
+
+Finally, setting shim and tuning parameters is also done using pulse programs.
+In order to set a new z-shim, for example, one must do something like this:
+
+```python
+dev.pulprog = [
+  [pyppm.SHIM_Z, 0.5],
+  [pyppm.END]
+]
+dev.execute()
+```
+
+A set of common pulse programs is available in the PyPPM GitHub repository,
+under `software/pulprogs`. It's _highly_ recommended that you start there
+instead of trying to write your own pulse programs from scratch.
 
 ### Acquiring data
 
-Once the acquisition parameters are set as desired, an experiment may be
+Once a pulse program has been downloaded to the device, an experiment may be
 performed using the following (blocking) command:
 
 ```python
-(t, a) = dev.acquire()
+(t, a) = dev.execute()
 ```
 
-This command will block until the entire experiment is complete. If multiple
-scans were set in the acquisition parameters, the program will block until
-all scans are completed.
+This command will block until the entire experiment is complete.
 
-The acquisition will return two tuples, `t` and `a`. The first tuple holds
-the time at which every data point was acquired, and the second holds the
-voltage (or average voltage, in the case of multiple scans) of each data
+If the pulse program contains `pyppm.ACQUIRE` commands, then the statement
+will return two tuples, `t` and `a`. The first tuple holds the time at which
+every data point was acquired, and the second holds the voltage of each data
 point.
+
+If the pulse program does not contain an acquisition command, then the
+`execute()` method returns `None`.
 
 ### Fourier transforming data
 
@@ -216,26 +255,40 @@ import matplotlib.pyplot as plt
 # connect to the device.
 dev = pyppm.PPM()
 
-# extend the polarization time.
-dev.setparm(pyppm.POLARIZE_TIME, 10)
+# download a pulse program.
+dev.pulprog = [
+  [pyppm.ACQUIRE, 16384, 20],
+  [pyppm.RELAY, True],
+  [pyppm.DEADTIME, 1],
+  [pyppm.POLARIZE, True],
+  [pyppm.DELAY, 10],
+  [pyppm.POLARIZE, False],
+  [pyppm.DEADTIME, 1],
+  [pyppm.RELAY, False],
+  [pyppm.DEADTIME, 10],
+  [pyppm.ACQUIRE, 16384, 20],
+  [pyppm.END]
+]
+```
 
-# acquire a scan with polarization.
-(t, aon) = dev.acquire()
+# execute the pulse program.
+(t, a) = dev.execute()
 
-# turn off polarization.
-dev.setparm(pyppm.POLARIZE_CURRENT, 0)
-dev.setparm(pyppm.POLARIZE_TIME, 0)
+# slice out the first acquisition.
+t0 = t[0 : 16384]
+a0 = a[0 : 16384]
 
-# acquire a scan without polarization.
-(t, aoff) = dev.acquire()
+# slice out the second acquisition.
+t1 = t[16384 : 32768]
+a1 = a[16384 : 32768]
 
 # Fourier transform the data.
-(f, Aon) = pyppm.fft(t, aon)
-(f, Aoff) = pyppm.fft(t, aoff)
+(f0, A0) = pyppm.fft(t0, a0)
+(f1, A1) = pyppm.fft(t1, a1)
 
 # plot the data.
-l, = plt.plot(np.array(f), np.array(Aon))
-l, = plt.plot(np.array(f), np.array(Aoff))
+l, = plt.plot(np.array(f1), np.array(A1))
+l, = plt.plot(np.array(f0), np.array(A0))
 plt.show()
 ```
 
