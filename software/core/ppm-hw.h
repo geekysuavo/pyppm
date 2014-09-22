@@ -41,7 +41,7 @@
   (((double) (WORD (msb, lsb)) * 5.0 / 65536.0) - 2.5)
 
 /* define helper functions for 16-bit words. */
-#define WORD(msb, lsb) ((msb << 8) & 0xff00) | (lsb & 0x00ff)
+#define WORD(msb, lsb) (((msb << 8) & 0xff00) | (lsb & 0x00ff))
 #define LSB(n) (n & 0xff)
 #define MSB(n) ((n >> 8) & 0xff)
 

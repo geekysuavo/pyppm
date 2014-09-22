@@ -56,6 +56,513 @@ typedef struct {
 }
 PyPPM;
 
+/* pyppm_unpack_prog: method to unpack a list of lists into a pulse program
+ * data structure.
+ */
+static int
+pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
+  /* declare required variables. */
+  PyObject *l, *s;
+  unsigned int ipp;
+  int iL, nL, nl;
+
+  /* declare variables to get the command string. */
+  unsigned int cmd;
+  PyObject *bytes;
+  char *str;
+
+  /* ensure the object is a list. */
+  if (!PyList_Check (L)) {
+    /* throw an exception. */
+    PyErr_SetString (PyExc_TypeError, "list expected");
+    return 0;
+  }
+
+  /* get the length of the outer list. */
+  nL = PyList_Size (L);
+
+  /* initialize the contents of the pulse program array and initialize the
+   * array index that will be used during traversal.
+   */
+  ppm_prog_zero (pp);
+  ipp = 0;
+
+  /* loop over the elements of the outer list. */
+  for (iL = 0; iL < nL; iL++) {
+    /* extract the current item of the outer list. */
+    l = PyList_GetItem (L, iL);
+
+    /* ensure the object is an allocated list. */
+    if (!l || !PyList_Check (l)) {
+      /* throw an exception. */
+      PyErr_Format (PyExc_TypeError, "list expected at index %d", iL);
+      return 0;
+    }
+
+    /* get the length of the inner list. */
+    nl = PyList_Size (l);
+
+    /* ensure the list is non-empty. */
+    if (nl < 1) {
+      /* throw an exception. */
+      PyErr_SetString (PyExc_ValueError, "list must not be empty");
+      return 0;
+    }
+
+    /* get the first list item. */
+    s = PyList_GetItem (l, 0);
+
+    /* ensure the first list item is a string. */
+    if (!PyUnicode_Check (s)) {
+      /* throw an exception. */
+      PyErr_Format (PyExc_TypeError, "string expected at index %d,0", iL);
+      return 0;
+    }
+
+    /* get the ascii value of the object. */
+    bytes = PyUnicode_AsASCIIString (s);
+    if (!bytes) {
+      /* throw an exception. */
+      PyErr_SetString (PyExc_TypeError, "failed to convert unicode to bytes");
+      return 0;
+    }
+
+    /* get the native string. */
+    str = PyBytes_AsString (bytes);
+    if (!str) {
+      /* throw an exception. */
+      PyErr_SetString (PyExc_TypeError, "failed to convert bytes to string");
+      return 0;
+    }
+
+    /* identify the command byte from the string representation. */
+    cmd = ppm_prog_id_from_string (str);
+
+    /* act based on the command byte. */
+    switch (cmd) {
+      /* short, imprecise delay. */
+      case PPM_PULPROG_DEADTIME:
+        /* ensure the list is sized correctly. */
+        if (PyList_Size (l) != 2) {
+          /* throw an exception. */
+          PyErr_SetString (PyExc_ValueError, "invalid argument count");
+          return 0;
+        }
+
+        /* read out the arguments. */
+        double dt_ms = PyFloat_AsDouble (PyList_GetItem (l, 1));
+
+        /* add the command bytes into the pulse program array. */
+        ppm_prog_add_deadtime (pp, &ipp, dt_ms);
+
+        /* break out. */
+        break;
+
+      /* precise delay. */
+      case PPM_PULPROG_DELAY:
+        /* ensure the list is sized correctly. */
+        if (PyList_Size (l) != 2) {
+          /* throw an exception. */
+          PyErr_SetString (PyExc_ValueError, "invalid argument count");
+          return 0;
+        }
+
+        /* read out the arguments. */
+        double delay_s = PyFloat_AsDouble (PyList_GetItem (l, 1));
+
+        /* add the command bytes into the pulse program array. */
+        ppm_prog_add_delay (pp, &ipp, delay_s);
+
+        /* break out. */
+        break;
+
+      /* polarization control. */
+      case PPM_PULPROG_POLARIZE:
+        /* ensure the list is sized correctly. */
+        if (PyList_Size (l) != 2) {
+          /* throw an exception. */
+          PyErr_SetString (PyExc_ValueError, "invalid argument count");
+          return 0;
+        }
+
+        /* read out the arguments. */
+        long ccs_en = PyLong_AsLong (PyList_GetItem (l, 1));
+
+        /* add the command bytes into the pulse program array. */
+        ppm_prog_add_polarize (pp, &ipp, ccs_en);
+
+        /* break out. */
+        break;
+
+      /* relay control. */
+      case PPM_PULPROG_RELAY:
+        /* ensure the list is sized correctly. */
+        if (PyList_Size (l) != 2) {
+          /* throw an exception. */
+          PyErr_SetString (PyExc_ValueError, "invalid argument count");
+          return 0;
+        }
+
+        /* read out the arguments. */
+        long rel_en = PyLong_AsLong (PyList_GetItem (l, 1));
+
+        /* add the command bytes into the pulse program array. */
+        ppm_prog_add_relay (pp, &ipp, rel_en);
+
+        /* break out. */
+        break;
+
+      /* acquisition. */
+      case PPM_PULPROG_ACQUIRE:
+        /* ensure the list is sized correctly. */
+        if (PyList_Size (l) != 3) {
+          /* throw an exception. */
+          PyErr_SetString (PyExc_ValueError, "invalid argument count");
+          return 0;
+        }
+
+        /* read out the arguments. */
+        long acq_pts = PyLong_AsLong (PyList_GetItem (l, 1));
+        double acq_rate = PyFloat_AsDouble (PyList_GetItem (l, 2));
+
+        /* add the command bytes into the pulse program array. */
+        ppm_prog_add_acquire (pp, &ipp, acq_pts, acq_rate);
+
+        /* break out. */
+        break;
+
+      /* adiabatic polarization rising,falling edge. */
+      case PPM_PULPROG_TXRISE:
+      case PPM_PULPROG_TXFALL:
+        /* ensure the list is sized correctly. */
+        if (PyList_Size (l) != 3) {
+          /* throw an exception. */
+          PyErr_SetString (PyExc_ValueError, "invalid argument count");
+          return 0;
+        }
+
+        /* read out the arguments. */
+        double txe_ms = PyFloat_AsDouble (PyList_GetItem (l, 1));
+        double txe_amp = PyFloat_AsDouble (PyList_GetItem (l, 2));
+
+        /* add the command bytes into the pulse program array. */
+        ppm_prog_add_txedge (pp, &ipp, cmd, txe_ms, txe_amp);
+
+        /* break out. */
+        break;
+
+      /* sinusoidal pulse. */
+      case PPM_PULPROG_TXPULSE:
+        /* ensure the list is sized correctly. */
+        if (PyList_Size (l) != 4) {
+          /* throw an exception. */
+          PyErr_SetString (PyExc_ValueError, "invalid argument count");
+          return 0;
+        }
+
+        /* read out the arguments. */
+        double pul_t = PyFloat_AsDouble (PyList_GetItem (l, 1));
+        double pul_f = PyFloat_AsDouble (PyList_GetItem (l, 2));
+        double pul_a = PyFloat_AsDouble (PyList_GetItem (l, 3));
+
+        /* add the command bytes into the pulse program array. */
+        ppm_prog_add_txpulse (pp, &ipp, pul_t, pul_f, pul_a);
+
+
+        /* break out. */
+        break;
+
+      /* capacitive tuning. */
+      case PPM_PULPROG_TUNE:
+        /* ensure the list is sized correctly. */
+        if (PyList_Size (l) != 2) {
+          /* throw an exception. */
+          PyErr_SetString (PyExc_ValueError, "invalid argument count");
+          return 0;
+        }
+
+        /* read out the arguments. */
+        double tun_f = PyFloat_AsDouble (PyList_GetItem (l, 1));
+
+        /* add the command bytes into the pulse program array. */
+        ppm_prog_add_tune (pp, &ipp, tun_f);
+
+        /* break out. */
+        break;
+
+      /* x,y,z-axis shim. */
+      case PPM_PULPROG_SHIM_X:
+      case PPM_PULPROG_SHIM_Y:
+      case PPM_PULPROG_SHIM_Z:
+        /* ensure the list is sized correctly. */
+        if (PyList_Size (l) != 2) {
+          /* throw an exception. */
+          PyErr_SetString (PyExc_ValueError, "invalid argument count");
+          return 0;
+        }
+
+        /* read out the arguments. */
+        double shm = PyFloat_AsDouble (PyList_GetItem (l, 1));
+
+        /* add the command bytes into the pulse program array. */
+        ppm_prog_add_shim (pp, &ipp, cmd, shm);
+
+
+        /* break out. */
+        break;
+
+      /* end execution. */
+      case PPM_PULPROG_END:
+        break;
+
+      /* unrecognized command. */
+      default:
+        /* throw an exception. */
+        PyErr_SetString (PyExc_ValueError, "unrecognized command byte");
+        return 0;
+    }
+  }
+
+  /* return success. */
+  return 1;
+}
+
+/* pyppm_pack_prog_iter: iterator for pyppm_pack_prog(). */
+void pyppm_pack_prog_iter (uint8_t cmd, uint8_t *args, void *pdata) {
+  /* declare required variables. */
+  double t32, f32, a16, d16, a8;
+  long n32;
+
+  /* declare python list objects. */
+  PyObject *L, *l;
+
+  /* dereference the master list object. */
+  L = (PyObject *) pdata;
+  l = NULL;
+
+  /* determine the current command type. */
+  switch (cmd) {
+    /* short, imprecise delay. */
+    case PPM_PULPROG_DEADTIME:
+      /* create a new inner list. */
+      l = PyList_New (0);
+
+      /* pack the command name into the list. */
+      PyList_Append (l, PyUnicode_FromString (PPM_PULPROG_STR_DEADTIME));
+
+      /* pack the arguments into the list. */
+      d16 = (double) WORD (args[0], args[1]);
+      PyList_Append (l, PyFloat_FromDouble (d16 * 25.0e-3));
+
+      /* break out. */
+      break;
+
+    /* precise delay. */
+    case PPM_PULPROG_DELAY:
+      /* create a new inner list. */
+      l = PyList_New (0);
+
+      /* pack the command name into the list. */
+      PyList_Append (l, PyUnicode_FromString (PPM_PULPROG_STR_DELAY));
+
+      /* pack the arguments into the list. */
+      d16 = (double) WORD (args[0], args[1]);
+      PyList_Append (l, PyFloat_FromDouble (d16 * 1.024e-3));
+
+      /* break out. */
+      break;
+
+    /* polarization control. */
+    case PPM_PULPROG_POLARIZE:
+      /* create a new inner list. */
+      l = PyList_New (0);
+
+      /* pack the command name into the list. */
+      PyList_Append (l, PyUnicode_FromString (PPM_PULPROG_STR_POLARIZE));
+
+      /* pack the arguments into the list. */
+      PyList_Append (l, PyBool_FromLong ((long) args[0]));
+
+      /* break out. */
+      break;
+
+    /* relay control. */
+    case PPM_PULPROG_RELAY:
+      /* create a new inner list. */
+      l = PyList_New (0);
+
+      /* pack the command name into the list. */
+      PyList_Append (l, PyUnicode_FromString (PPM_PULPROG_STR_RELAY));
+
+      /* pack the arguments into the list. */
+      PyList_Append (l, PyBool_FromLong ((long) args[0]));
+
+      /* break out. */
+      break;
+
+    /* acquisition. */
+    case PPM_PULPROG_ACQUIRE:
+      /* create a new inner list. */
+      l = PyList_New (0);
+
+      /* pack the command name into the list. */
+      PyList_Append (l, PyUnicode_FromString (PPM_PULPROG_STR_ACQUIRE));
+
+      /* pack the first argument into the list. */
+      n32 = (long) WORD32 (args[0], args[1], args[2], args[3]);
+      PyList_Append (l, PyLong_FromLong (n32));
+
+      /* pack the second argument into the list. */
+      d16 = (double) WORD (args[4], args[5]);
+      PyList_Append (l, PyFloat_FromDouble (1.6e+4 / d16));
+
+      /* break out. */
+      break;
+
+    /* adiabatic polarization rising edge. */
+    case PPM_PULPROG_TXRISE:
+      /* create a new inner list. */
+      l = PyList_New (0);
+
+      /* pack the command name into the list. */
+      PyList_Append (l, PyUnicode_FromString (PPM_PULPROG_STR_TXRISE));
+
+      /* pack the first argument into the list. */
+      d16 = (double) WORD (args[0], args[1]);
+      PyList_Append (l, PyFloat_FromDouble (d16 * 1.024e-3));
+
+      /* pack the second argument into the list. */
+      a16 = (double) WORD (args[2], args[3]);
+      PyList_Append (l, PyFloat_FromDouble (a16 / pow (2.0, 15.0)));
+
+      /* break out. */
+      break;
+
+    /* adiabatic polarization falling edge. */
+    case PPM_PULPROG_TXFALL:
+      /* create a new inner list. */
+      l = PyList_New (0);
+
+      /* pack the command name into the list. */
+      PyList_Append (l, PyUnicode_FromString (PPM_PULPROG_STR_TXFALL));
+
+      /* pack the first argument into the list. */
+      d16 = (double) WORD (args[0], args[1]);
+      PyList_Append (l, PyFloat_FromDouble (d16 * 1.024e-3));
+
+      /* pack the second argument into the list. */
+      a16 = (double) WORD (args[2], args[3]);
+      PyList_Append (l, PyFloat_FromDouble (a16 / pow (2.0, 15.0)));
+
+      /* break out. */
+      break;
+
+    /* sinusoidal pulse. */
+    case PPM_PULPROG_TXPULSE:
+      /* create a new inner list. */
+      l = PyList_New (0);
+
+      /* pack the command name into the list. */
+      PyList_Append (l, PyUnicode_FromString (PPM_PULPROG_STR_TXPULSE));
+
+      /* pack the first argument into the list. */
+      t32 = (double) WORD32 (args[0], args[1], args[2], args[3]);
+      PyList_Append (l, PyFloat_FromDouble (t32 * 4.0e-6));
+
+      /* pack the second argument into the list. */
+      f32 = (double) WORD32 (args[4], args[5], args[6], args[7]);
+      PyList_Append (l, PyFloat_FromDouble (f32 / (pow (2.0, 16.0) - 1.0)));
+
+      /* pack the third argument into the list. */
+      a8 = (double) args[8];
+      PyList_Append (l, PyFloat_FromDouble (a8 / (pow (2.0, 8.0) - 1.0)));
+
+      /* break out. */
+      break;
+ 
+    /* capacitive tuning. */
+    case PPM_PULPROG_TUNE:
+      /* create a new inner list. */
+      l = PyList_New (0);
+
+      /* pack the command name into the list. */
+      PyList_Append (l, PyUnicode_FromString (PPM_PULPROG_STR_TUNE));
+
+      /* pack the arguments into the list. */
+      a16 = (double) WORD (args[0], args[1]);
+      PyList_Append (l, PyFloat_FromDouble (a16 / (pow (2.0, 16.0) - 1.0)));
+
+      /* break out. */
+      break;
+ 
+    /* shimming. */
+    case PPM_PULPROG_SHIM_X:
+    case PPM_PULPROG_SHIM_Y:
+    case PPM_PULPROG_SHIM_Z:
+      /* create a new inner list. */
+      l = PyList_New (0);
+
+      /* pack the command name into the list. */
+      if (cmd == PPM_PULPROG_SHIM_X)
+        PyList_Append (l, PyUnicode_FromString (PPM_PULPROG_STR_SHIM_X));
+      else if (cmd == PPM_PULPROG_SHIM_Y)
+        PyList_Append (l, PyUnicode_FromString (PPM_PULPROG_STR_SHIM_Y));
+      else
+        PyList_Append (l, PyUnicode_FromString (PPM_PULPROG_STR_SHIM_Z));
+
+      /* pack the arguments into the list. */
+      a16 = (double) WORD (args[0], args[1]);
+      PyList_Append (l, PyFloat_FromDouble (a16 / (pow (2.0, 16.0) - 1.0)));
+
+      /* break out. */
+      break;
+ 
+    /* end execution. */
+    case PPM_PULPROG_END:
+      /* create a new inner list. */
+      l = PyList_New (0);
+
+      /* pack the command name into the list. */
+      PyList_Append (l, PyUnicode_FromString (PPM_PULPROG_STR_END));
+
+      /* break out. */
+      break;
+
+    /* unrecognized command. */
+    default:
+      /* silently ignore it... */
+      break;
+  }
+
+  /* check if a new list item was created. */
+  if (l) {
+    /* append the item onto the master list. */
+    PyList_Append (L, l);
+  }
+}
+
+/* pyppm_pack_prog: method to pack a pulse program data structure into a
+ * list of lists.
+ */
+static PyObject*
+pyppm_pack_prog (ppm_prog *pp) {
+  /* declare required variables. */
+  PyObject *obj;
+
+  /* create a new list. */
+  obj = PyList_New (0);
+  if (!obj)
+    return NULL;
+
+  /* iterate through the pulse program, building the innards of the list
+   * as we go along.
+   */
+  ppm_prog_iterate (pp, pyppm_pack_prog_iter, obj);
+
+  /* return the packed list of lists. */
+  return obj;
+}
+
 /* pyppm_unpack_data: method to unpack a tuple of tuples into an acquisition
  * data structure.
  */
@@ -584,20 +1091,12 @@ PyPPM_setversion (PyPPM *self, PyObject *value, void *closure) {
  */
 static PyObject*
 PyPPM_getprog (PyPPM *self, void *closure) {
-  /* declare required variables. */
-  PyObject *obj;
-
   /* ensure that the parameters are up to date. */
   if (!PyPPM_refresh (self))
     return NULL;
 
-  /* initialize a new list object. */
-  obj = PyList_New (0);
-
-  /* FIXME: implement PyPPM_getprog() */
-
-  /* return the python object. */
-  return obj;
+  /* pack the pulse program into a new list object. */
+  return pyppm_pack_prog (&self->pp);
 }
 
 /* PyPPM_setprog: setter method for ppm object 'pulprog' attributes.
@@ -621,7 +1120,9 @@ PyPPM_setprog (PyPPM *self, PyObject *value, void *closure) {
     return -1;
   }
 
-  /* FIXME: implement PyPPM_setprog() */
+  /* unpack the pulse program, formatted as a list of lists. */
+  if (!pyppm_unpack_prog (value, &self->pp))
+    return -1;
 
   /* indicate that the pulse programs on the device and host are
    * possibly out of sync in case the transfer fails.
@@ -701,6 +1202,25 @@ PyPPM_execute (PyPPM *self, PyObject *args) {
 
   /* return the python object. */
   return obj;
+}
+
+/* PyPPM_AddUnicodeStringConstant: adds a string constant to a module
+ * object, ensuring that the constant is unicode.
+ */
+static void
+PyPPM_AddUnicodeStringConstant (PyObject *module,
+                                const char *key,
+                                const char *val) {
+  /* declare required variables */
+  PyObject *U;
+
+  /* create a new unicode object from the value string. */
+  U = PyUnicode_FromString (val);
+  if (!U)
+    return;
+
+  /* add the unicode object to the module. */
+  PyModule_AddObject (module, key, U);
 }
 
 /* PyPPM_methods: the python method structure for ppm devices.
@@ -877,43 +1397,56 @@ initpyppm (void) {
 #endif
 
   /* pulprog element: dead time. */
-  PyModule_AddIntConstant (pyppm, "DEADTIME", PPM_PULPROG_DEADTIME);
+  PyPPM_AddUnicodeStringConstant (pyppm,
+    "DEADTIME", PPM_PULPROG_STR_DEADTIME);
 
   /* pulprog element: delay. */
-  PyModule_AddIntConstant (pyppm, "DELAY", PPM_PULPROG_DELAY);
+  PyPPM_AddUnicodeStringConstant (pyppm,
+    "DELAY", PPM_PULPROG_STR_DELAY);
 
   /* pulprog element: polarization. */
-  PyModule_AddIntConstant (pyppm, "POLARIZE", PPM_PULPROG_POLARIZE);
+  PyPPM_AddUnicodeStringConstant (pyppm,
+    "POLARIZE", PPM_PULPROG_STR_POLARIZE);
 
   /* pulprog element: relay. */
-  PyModule_AddIntConstant (pyppm, "RELAY", PPM_PULPROG_RELAY);
+  PyPPM_AddUnicodeStringConstant (pyppm,
+    "RELAY", PPM_PULPROG_STR_RELAY);
 
   /* pulprog element: acquisition. */
-  PyModule_AddIntConstant (pyppm, "ACQUIRE", PPM_PULPROG_ACQUIRE);
+  PyPPM_AddUnicodeStringConstant (pyppm,
+    "ACQUIRE", PPM_PULPROG_STR_ACQUIRE);
 
   /* pulprog element: tx rising edge. */
-  PyModule_AddIntConstant (pyppm, "TX_RISE", PPM_PULPROG_TXRISE);
+  PyPPM_AddUnicodeStringConstant (pyppm,
+    "TX_RISE", PPM_PULPROG_STR_TXRISE);
 
   /* pulprog element: tx falling edge. */
-  PyModule_AddIntConstant (pyppm, "TX_FALL", PPM_PULPROG_TXFALL);
+  PyPPM_AddUnicodeStringConstant (pyppm,
+    "TX_FALL", PPM_PULPROG_STR_TXFALL);
 
   /* pulprog element: tx pulse. */
-  PyModule_AddIntConstant (pyppm, "TX_PULSE", PPM_PULPROG_TXPULSE);
+  PyPPM_AddUnicodeStringConstant (pyppm,
+    "TX_PULSE", PPM_PULPROG_STR_TXPULSE);
 
   /* pulprog element: tuning. */
-  PyModule_AddIntConstant (pyppm, "TUNE", PPM_PULPROG_TUNE);
+  PyPPM_AddUnicodeStringConstant (pyppm,
+    "TUNE", PPM_PULPROG_STR_TUNE);
 
   /* pulprog element: x-shim. */
-  PyModule_AddIntConstant (pyppm, "SHIM_X", PPM_PULPROG_SHIM_X);
+  PyPPM_AddUnicodeStringConstant (pyppm,
+    "SHIM_X", PPM_PULPROG_STR_SHIM_X);
 
   /* pulprog element: y-shim. */
-  PyModule_AddIntConstant (pyppm, "SHIM_Y", PPM_PULPROG_SHIM_Y);
+  PyPPM_AddUnicodeStringConstant (pyppm,
+    "SHIM_Y", PPM_PULPROG_STR_SHIM_Y);
 
   /* pulprog element: z-shim. */
-  PyModule_AddIntConstant (pyppm, "SHIM_Z", PPM_PULPROG_SHIM_Z);
+  PyPPM_AddUnicodeStringConstant (pyppm,
+    "SHIM_Z", PPM_PULPROG_STR_SHIM_Z);
 
   /* pulprog element: end. */
-  PyModule_AddIntConstant (pyppm, "END", PPM_PULPROG_END);
+  PyPPM_AddUnicodeStringConstant (pyppm,
+    "END", PPM_PULPROG_STR_END);
 
   /* return the initialized module. */
 #if PY_MAJOR_VERSION >= 3

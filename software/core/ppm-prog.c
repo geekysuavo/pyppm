@@ -29,25 +29,28 @@ typedef struct ppm_cmd_t {
   /* the command byte. */
   uint8_t id;
 
+  /* the command string. */
+  char str[32];
+
   /* the command argument byte count. */
   unsigned int n_argbytes;
 } ppm_cmd;
 
 /* declare an array of command information structures. */
 static const ppm_cmd cmds[] = {
-  { PPM_PULPROG_DEADTIME, 2 },
-  { PPM_PULPROG_DELAY,    2 },
-  { PPM_PULPROG_POLARIZE, 1 },
-  { PPM_PULPROG_RELAY,    1 },
-  { PPM_PULPROG_ACQUIRE,  6 },
-  { PPM_PULPROG_TXRISE,   4 },
-  { PPM_PULPROG_TXFALL,   4 },
-  { PPM_PULPROG_TXPULSE,  9 },
-  { PPM_PULPROG_TUNE,     2 },
-  { PPM_PULPROG_SHIM_X,   2 },
-  { PPM_PULPROG_SHIM_Y,   2 },
-  { PPM_PULPROG_SHIM_Z,   2 },
-  { PPM_PULPROG_END,      0 }
+  { PPM_PULPROG_DEADTIME, PPM_PULPROG_STR_DEADTIME, 2 },
+  { PPM_PULPROG_DELAY,    PPM_PULPROG_STR_DELAY,    2 },
+  { PPM_PULPROG_POLARIZE, PPM_PULPROG_STR_POLARIZE, 1 },
+  { PPM_PULPROG_RELAY,    PPM_PULPROG_STR_RELAY,    1 },
+  { PPM_PULPROG_ACQUIRE,  PPM_PULPROG_STR_ACQUIRE,  6 },
+  { PPM_PULPROG_TXRISE,   PPM_PULPROG_STR_TXRISE,   4 },
+  { PPM_PULPROG_TXFALL,   PPM_PULPROG_STR_TXFALL,   4 },
+  { PPM_PULPROG_TXPULSE,  PPM_PULPROG_STR_TXPULSE,  9 },
+  { PPM_PULPROG_TUNE,     PPM_PULPROG_STR_TUNE,     2 },
+  { PPM_PULPROG_SHIM_X,   PPM_PULPROG_STR_SHIM_X,   2 },
+  { PPM_PULPROG_SHIM_Y,   PPM_PULPROG_STR_SHIM_Y,   2 },
+  { PPM_PULPROG_SHIM_Z,   PPM_PULPROG_STR_SHIM_Z,   2 },
+  { PPM_PULPROG_END,      PPM_PULPROG_STR_END,      0 }
 };
 
 /* ppm_prog_alloc: allocates a pulse program array.
@@ -83,6 +86,34 @@ void ppm_prog_empty (ppm_prog *pp) {
   pp->n = 0;
 }
 
+/* ppm_prog_zero: zeros the data in a pulse program array.
+ */
+void ppm_prog_zero (ppm_prog *pp) {
+  /* declare required variables. */
+  unsigned int i;
+
+  /* zero all allocated bytes. */
+  for (i = 0; i < pp->n; i++)
+    pp->bytes[i] = PPM_PULPROG_END;
+}
+
+/* ppm_prog_id_from_string: identifies the command byte by its string repr.
+ */
+unsigned int ppm_prog_id_from_string (const char *str) {
+  /* declare required variables. */
+  unsigned int i;
+
+  /* loop through the commands array. */
+  for (i = 0; cmds[i].id != PPM_PULPROG_END; i++) {
+    /* check if there is a string match. */
+    if (strcmp (str, cmds[i].str) == 0)
+      return cmds[i].id;
+  }
+
+  /* return failure. */
+  return PPM_PULPROG_END;
+}
+
 /* ppm_prog_iterate: iterates over the commands of a pulse program. */
 void ppm_prog_iterate (ppm_prog *pp, ppm_prog_iterator fn, void *pdata) {
   /* declare required variables. */
@@ -92,6 +123,10 @@ void ppm_prog_iterate (ppm_prog *pp, ppm_prog_iterator fn, void *pdata) {
   for (i = 0; i < pp->n; i++) {
     /* run the callback function. */
     fn (pp->bytes[i], &(pp->bytes[i + 1]), pdata);
+
+    /* return if we've hit the end of the pulse program. */
+    if (pp->bytes[i] == PPM_PULPROG_END)
+      return;
 
     /* loop through the commands array to determine how far to skip. */
     for (j = 0; cmds[j].id != PPM_PULPROG_END; j++) {
@@ -175,6 +210,178 @@ void ppm_prog_timings (ppm_prog *pp, ppm_data *acq) {
 
   /* fix the first point. */
   acq->x[0] = 0.0;
+}
+
+/* ppm_prog_add_deadtime: adds a dead time command at the current index.
+ * updates the index to just past the command and its arguments.
+ */
+void ppm_prog_add_deadtime (ppm_prog *pp, unsigned int *idx, double ms) {
+  /* declare required variables. */
+  uint16_t arg16;
+
+  /* add the command. */
+  pp->bytes[(*idx)++] = PPM_PULPROG_DEADTIME;
+
+  /* compute and add the argument. */
+  arg16 = (uint16_t) round (ms / 25.0e-3);
+  pp->bytes[(*idx)++] = MSB (arg16);
+  pp->bytes[(*idx)++] = LSB (arg16);
+}
+
+/* ppm_prog_add_delay: adds a delay command at the current index.
+ * updates the index to just past the command and its arguments.
+ */
+void ppm_prog_add_delay (ppm_prog *pp, unsigned int *idx, double s) {
+  /* declare required variables. */
+  uint16_t arg16;
+
+  /* add the command. */
+  pp->bytes[(*idx)++] = PPM_PULPROG_DELAY;
+
+  /* compute and add the argument. */
+  arg16 = (uint16_t) round (s / 1.024e-3);
+  pp->bytes[(*idx)++] = MSB (arg16);
+  pp->bytes[(*idx)++] = LSB (arg16);
+}
+
+/* ppm_prog_add_polarize: adds a polarization control command at the current
+ * index. updates the index to just past the command and its arguments.
+ */
+void ppm_prog_add_polarize (ppm_prog *pp, unsigned int *idx, long en) {
+  /* declare required variables. */
+  uint8_t arg8;
+
+  /* add the command. */
+  pp->bytes[(*idx)++] = PPM_PULPROG_POLARIZE;
+
+  /* compute and add the argument. */
+  arg8 = (uint8_t) (en ? 0x01 : 0x00);
+  pp->bytes[(*idx)++] = arg8;
+}
+
+/* ppm_prog_add_relay: adds a relay control command at the current index.
+ * updates the index to just past the command and its arguments.
+ */
+void ppm_prog_add_relay (ppm_prog *pp, unsigned int *idx, long en) {
+  /* declare required variables. */
+  uint8_t arg8;
+
+  /* add the command. */
+  pp->bytes[(*idx)++] = PPM_PULPROG_RELAY;
+
+  /* compute and add the argument. */
+  arg8 = (uint8_t) (en ? 0x01 : 0x00);
+  pp->bytes[(*idx)++] = arg8;
+}
+
+/* ppm_prog_add_acquire: adds an acquisition command at the current index.
+ * updates the index to just past the command and its arguments.
+ */
+void ppm_prog_add_acquire (ppm_prog *pp, unsigned int *idx,
+                           long n, double rate) {
+  /* declare required variables. */
+  uint32_t arg32;
+  uint16_t arg16;
+
+  /* add the command. */
+  pp->bytes[(*idx)++] = PPM_PULPROG_ACQUIRE;
+
+  /* compute and add the first argument. */
+  arg32 = (uint32_t) n;
+  pp->bytes[(*idx)++] = BYTE3 (arg32);
+  pp->bytes[(*idx)++] = BYTE2 (arg32);
+  pp->bytes[(*idx)++] = BYTE1 (arg32);
+  pp->bytes[(*idx)++] = BYTE0 (arg32);
+
+  /* compute and add the second argument. */
+  arg16 = (uint16_t) round (1.6e4 / rate);
+  pp->bytes[(*idx)++] = MSB (arg16);
+  pp->bytes[(*idx)++] = LSB (arg16);
+}
+
+/* ppm_prog_add_txedge: adds a tx edge change command at the current index.
+ * updates the index to just past the command and its arguments.
+ */
+void ppm_prog_add_txedge (ppm_prog *pp, unsigned int *idx, uint8_t cmd,
+                          double ms, double ampl) {
+  /* declare required variables. */
+  uint16_t arg16;
+
+  /* add the command. */
+  pp->bytes[(*idx)++] = cmd;
+
+  /* compute and add the first argument. */
+  arg16 = (uint16_t) round (ms / 1.024e-3);
+  pp->bytes[(*idx)++] = MSB (arg16);
+  pp->bytes[(*idx)++] = LSB (arg16);
+
+  /* compute and add the second argument. */
+  arg16 = (uint16_t) round (ampl * pow (2.0, 15.0));
+  pp->bytes[(*idx)++] = MSB (arg16);
+  pp->bytes[(*idx)++] = LSB (arg16);
+}
+
+/* ppm_prog_add_txpulse: adds a tx sine pulse command at the current index.
+ * updates the index to just past the command and its arguments.
+ */
+void ppm_prog_add_txpulse (ppm_prog *pp, unsigned int *idx,
+                           double t, double f, double ampl) {
+  /* declare required variables. */
+  uint32_t arg32;
+  uint16_t arg16;
+  uint8_t arg8;
+
+  /* add the command. */
+  pp->bytes[(*idx)++] = PPM_PULPROG_TXPULSE;
+
+  /* compute and add the first argument. */
+  arg32 = (uint32_t) round (t / 4.0e-6);
+  pp->bytes[(*idx)++] = BYTE3 (arg32);
+  pp->bytes[(*idx)++] = BYTE2 (arg32);
+  pp->bytes[(*idx)++] = BYTE1 (arg32);
+  pp->bytes[(*idx)++] = BYTE0 (arg32);
+
+  /* compute and add the second argument. */
+  arg16 = (uint16_t) round (f * (pow (2.0, 16.0) - 1.0));
+  pp->bytes[(*idx)++] = MSB (arg16);
+  pp->bytes[(*idx)++] = LSB (arg16);
+
+  /* compute and add the final argument. */
+  arg8 = (uint8_t) round (ampl * (pow (2.0, 8.0) - 1.0));
+  pp->bytes[(*idx)++] = arg8;
+}
+
+/* ppm_prog_add_tune: adds a tuning command at the current index.
+ * updates the index to just past the command and its arguments.
+ */
+void ppm_prog_add_tune (ppm_prog *pp, unsigned int *idx, double f) {
+  /* declare required variables. */
+  uint16_t arg16;
+
+  /* add the command. */
+  pp->bytes[(*idx)++] = PPM_PULPROG_TUNE;
+
+  /* compute and add the argument. */
+  arg16 = (uint16_t) round (f * (pow (2.0, 16.0) - 1.0));
+  pp->bytes[(*idx)++] = MSB (arg16);
+  pp->bytes[(*idx)++] = LSB (arg16);
+}
+
+/* ppm_prog_add_shim: adds a shimming command at the current index.
+ * updates the index to just past the command and its arguments.
+ */
+void ppm_prog_add_shim (ppm_prog *pp, unsigned int *idx, uint8_t cmd,
+                        double s) {
+  /* declare required variables. */
+  uint16_t arg16;
+
+  /* add the command. */
+  pp->bytes[(*idx)++] = cmd;
+
+  /* compute and add the argument. */
+  arg16 = (uint16_t) round (s * (pow (2.0, 16.0) - 1.0));
+  pp->bytes[(*idx)++] = MSB (arg16);
+  pp->bytes[(*idx)++] = LSB (arg16);
 }
 
 /* ppm_prog_read: reads the contents of a pulse program structure from a file.

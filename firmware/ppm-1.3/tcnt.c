@@ -37,9 +37,8 @@ void tcnt_init (void) {
   TIMSK0 &= ~(1 << TOIE0);
   TIMSK1 &= ~((1 << TOIE1) | (1 << OCIE1A));
 
-  /* configure the timer0 prescaler mux for 64 us resolution. */
-  TCCR0B |= ((1 << CS02) | (1 << CS00));
-  TCCR0B &= ~(1 << CS01);
+  /* configure the timer0 prescaler mux for 4.0 us resolution. */
+  TCCR0B |= ((1 << CS01) | (1 << CS00));
 
   /* configure timer1 to clear on output compare match. */
   TCCR1B |= (1 << WGM12);
