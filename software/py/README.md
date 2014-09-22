@@ -263,7 +263,6 @@ dev.pulprog = [
   [pyppm.ACQUIRE, 16384, 20],
   [pyppm.END]
 ]
-```
 
 # execute the pulse program.
 (t, a) = dev.execute()
