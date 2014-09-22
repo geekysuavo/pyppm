@@ -25,11 +25,6 @@ small chunks of work. Each one either has a short conversation with the
 PyPPM hardware or does a small piece of data processing on acquired
 signals.
 
-As a general rule of thumb, utilities that have `h` suffixed onto them are the
-human-readable versions of their simpler utilities. For example, while `rpar`
-reads the current parameters from a PyPPMv1 device, `rparh` will read the
-same parameters and output them in human-readable format.
-
 These `cli` utilities are meant mainly for the purposes of debugging. If you
 want to use the PyPPM for anything useful, the Python module is recommended.
 
@@ -38,15 +33,13 @@ A good test of the PyPPM and the `cli` utilities is to build them and run
 
 ```
 make
-./rparh
-./zg
-./ft
+./ver
+./rpp
 ```
 
-These commands should connect to the PyPPM, read the current set of parameters,
-run a single acquisition, and Fourier transform the result. The time-domain
-results will be in a file called `fid` and the frequency-domain results will
-be in `spect`.
+These commands should connect to the PyPPM, read the firmware version and
+current pulse program in memory. If you've just flashed and connected the
+PyPPM, the pulse program dump should be all zeros.
 
 ### Live acquisition view
 
