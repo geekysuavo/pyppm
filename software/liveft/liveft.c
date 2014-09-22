@@ -36,7 +36,7 @@
 
 /* declare required persistent PPM data elements. */
 ppm_data tacq, facq[N_AVE], fave, fmem;
-ppm_parms parms;
+ppm_prog pulprog;
 int i_ave, fd;
 
 /* declare required persistent GL data elements. */
@@ -108,7 +108,7 @@ void liveft_gl_draw (void) {
   unsigned int i, j;
 
   /* acquire a new packet of data. */
-  if (!ppm_zg_fd (fd, &parms, &tacq))
+  if (!ppm_zg_fd (fd, &pulprog, &tacq))
     glutDestroyWindow (win);
 
   /* fourier transform the time-domain data. */
@@ -309,21 +309,25 @@ int main (int argc, char **argv) {
   if (fd < 0)
     return 1;
 
-  /* set up the desired device parameters for continuous acquisition. */
-  parms.acquire_count = N_ACQ;
-  parms.f_polarize_ovf = 0.0;
-  parms.f_acquire_ovf = 10.0;
-  parms.f_deadtime_pol = 1.0;
-  parms.f_deadtime_acq = 1.0;
-  parms.f_ccs_value = 0.0;
-  parms.ns = 1;
+  /* read the size of the pulse program array. */
+  unsigned int n = ppm_szpp_fd (fd);
 
-  /* dehumanize the device parameters. */
-  if (!ppm_parms_dehumanize (&parms))
+  /* allocate memory for the pulse program. */
+  if (!n || !ppm_prog_alloc (&pulprog, n))
     return 1;
 
-  /* try to write the device parameters. */
-  if (!ppm_wpar_fd (fd, &parms))
+  /* write a pulse program for continuous acquisition. */
+  pulprog.bytes[0] = PPM_PULPROG_ACQUIRE;
+  pulprog.bytes[1] = BYTE3 (N_ACQ);
+  pulprog.bytes[2] = BYTE2 (N_ACQ);
+  pulprog.bytes[3] = BYTE1 (N_ACQ);
+  pulprog.bytes[4] = BYTE0 (N_ACQ);
+  pulprog.bytes[5] = MSB (1600);
+  pulprog.bytes[6] = LSB (1600);
+  pulprog.bytes[7] = PPM_PULPROG_END;
+
+  /* try to write the pulse program. */
+  if (!ppm_wpp_fd (fd, &pulprog))
     return 1;
 
   /* initialize the GLUT state. */

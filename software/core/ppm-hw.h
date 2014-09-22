@@ -79,6 +79,8 @@ int ppm_rst (const char *fname);
 
 int ppm_ver_fd (int fd, int *ver, int *rev);
 
+unsigned int ppm_szpp_fd (int fd);
+
 int ppm_wpp_fd (int fd, ppm_prog *pp);
 
 int ppm_rpp_fd (int fd, ppm_prog *pp);
