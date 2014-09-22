@@ -132,14 +132,8 @@ we run this pulse program...
 ```
 
 ... we'll get the two acquisitions serialized end-to-end in `t` and `a`. Of
-course, they can be teased apart without too much worry:
-
-```python
-t0 = t[0 : 16384]
-a0 = a[0 : 16384]
-t1 = t[16384 : 32768]
-a1 = a[16384 : 32768]
-```
+course, they can be sliced apart without too much worry. (See the full
+example below for exactly how it's done)
 
 Finally, setting shim and tuning parameters is also done using pulse programs.
 In order to set a new z-shim, for example, one must do something like this:
