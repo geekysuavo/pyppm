@@ -64,8 +64,8 @@ and may be instantiated like so:
 dev = pyppm.PPM()
 ```
 
-On Linux, this assumes you're trying to connect to `/dev/ttyACM0`. On OSX, it
-assumes `/dev/cu.usbmodemPPMv1r1`. If you have multiple attached PyPPM
+On Linux, this assumes you're trying to connect to `/dev/ttyACM0`. On OSX,
+it assumes `/dev/cu.usbmodemPyPPM`. If you have multiple attached PyPPM
 devices, or if your device was assigned a different device filename than
 the default, you can specify a filename:
 
@@ -74,7 +74,14 @@ dev = pyppm.PPM(filename = '/dev/file')
 ```
 
 If all goes well, you should have no errors and a new `dev` object to play
-with.
+with. A simple test is to print the device firmware version:
+
+```python
+print(dev.version)
+```
+
+A proper response is a 2-tuple containing the major and minor version of the
+attached device's firmware, _e.g._ `(1, 3)`.
 
 ### Acquisition parameters
 

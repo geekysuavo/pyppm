@@ -12,11 +12,12 @@ language to interface to the PyPPM via the character device (usually
 `/dev/ttyACM0`) it creates on the host computer. All higher level code
 (including the Python module) wraps this core C code.
 
-*Note:* Depending on the ownership of the `/dev/ttyACM0` or `/dev/usbmodemXXX`
-device file created by the operating system upon connection of the PyPPM to
-the host computer, you may have to run programs that talk to the PyPPM as
-root, _e.g.:_ `./liveft` would become `sudo ./liveft`, _etc_. This goes for
-any Python programs that use the `pyppm` module too.
+*Note:* Depending on the ownership of the `/dev/ttyACM0` or
+`/dev/cu.usbmodemPyPPM` device file created by the operating system upon
+connection of the PyPPM to the host computer, you may have to run programs
+that talk to the PyPPM as root, _e.g.:_ `./liveft` would become
+`sudo ./liveft`, _etc_. This goes for any Python programs that
+use the `pyppm` module too.
 
 ### Command-line utilities
 
