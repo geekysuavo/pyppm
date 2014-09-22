@@ -48,17 +48,6 @@ run a single acquisition, and Fourier transform the result. The time-domain
 results will be in a file called `fid` and the frequency-domain results will
 be in `spect`.
 
-### Graphical device interface
-
-The `gui` directory contains source code for the `backspin` graphical interface
-to the PyPPM hardware. While `backspin` is technically a GUI application, it
-is not super-friendly, and relies upon a set of text commands for operating
-the device. Again, the Python module is recommended.
-
-To use `backspin`, just build it and run (with a PyPPM attached):
-
-> `make && ./backspin`
-
 ### Live acquisition view
 
 The `liveft` directory contains source code for a small OpenGL application that
