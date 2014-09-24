@@ -1223,6 +1223,69 @@ PyPPM_AddUnicodeStringConstant (PyObject *module,
   PyModule_AddObject (module, key, U);
 }
 
+/* * * * BEGIN DOCUMENTATION STRINGS * * * */
+
+PyDoc_STRVAR (
+  pyppm_module_doc,
+"" /*FIXME*/
+);
+
+PyDoc_STRVAR (
+  pyppm_class_doc,
+"" /*FIXME*/
+);
+
+PyDoc_STRVAR (
+  pyppm_math_fft_doc,
+"fft(t, a) -> (f, A)\n"
+"\n"
+"Compute the radix-2 fast Fourier-transform (FFT) of a pair\n"
+"of time (t) and amplitude (a) tuples, and return the result\n"
+"as a frequency tuple (f) and an amplitude tuple (A). The\n"
+"FFT is the workhorse of the three transformations in the\n"
+"PyPPM module, providing a fast means of identifying major\n"
+"spectral components in a time-domain signal.\n"
+"\n"
+"No window function is applied prior to transformation."
+);
+
+PyDoc_STRVAR (
+  pyppm_math_hrft_doc,
+"hrft(t, a, f1, f2) -> (f, A)\n"
+"\n"
+"Compute the high-resolution Fourier-transform (HRFT) of a pair\n"
+"of time (t) and amplitude (a) tuples, and return the result\n"
+"as a frequency tuple (f) and an amplitude tuple (A). The\n"
+"HRFT differs from the FFT in the sense that it computes\n"
+"a highly interpolated subspectrum between the bounding\n"
+"frequencies (f1, f2).\n"
+"\n"
+"The HRFT is most useful as a transform to precisely find\n"
+"the center frequency of a spectral component.\n"
+"\n"
+"A Blackman window function is applied prior to transformation."
+);
+
+PyDoc_STRVAR (
+  pyppm_math_stft_doc,
+"stft(t, a) -> (ts, fs, As)\n"
+"\n"
+"Compute the short-time Fourier-transform (STFT) of a pair of\n"
+"time (t) and amplitude (a) tuples, and return the result as a\n"
+"short time tuple (ts), a frequency tuple (fs) and an amplitude\n"
+"matrix (As) expressed as a tuple of tuples.\n"
+"\n"
+"The STFT is most useful to identify time-dependent changes in\n"
+"amplitude of spectral components. One expects steady-state\n"
+"interference to have a constant amplitude, for example, while\n"
+"the amplitude of NMR signals will decay away exponentially.\n"
+"\n"
+"A Blackman window function is applied to each short-time\n"
+"segment of the data prior to Fourier transformation."
+);
+
+/* * * * END DOCUMENTATION STRINGS * * * */
+
 /* PyPPM_methods: the python method structure for ppm devices.
  */
 static PyMethodDef PyPPM_methods[] = {
@@ -1287,7 +1350,7 @@ static PyTypeObject PyPPM_Type = {
   0,                                /* tp_as_buffer */
   Py_TPFLAGS_DEFAULT |
   Py_TPFLAGS_BASETYPE,              /* tp_flags */
-  "ppm device object",              /* tp_doc */
+  pyppm_class_doc,                  /* tp_doc */
   0,                                /* tp_traverse */
   0,                                /* tp_clear */
   0,                                /* tp_richcompare */
@@ -1313,17 +1376,17 @@ static PyMethodDef PyPPM_ModuleMethods[] = {
   { "fft",
     (PyCFunction) pyppm_math_fft,
     METH_VARARGS,
-    "compute the fast Fourier transform of a free induction decay"
+    pyppm_math_fft_doc
   },
   { "hrft",
     (PyCFunction) pyppm_math_hrft,
     METH_VARARGS | METH_KEYWORDS,
-    "compute the high-resolution Fourier transform of a free induction decay"
+    pyppm_math_hrft_doc
   },
   { "stft",
     (PyCFunction) pyppm_math_stft,
     METH_VARARGS,
-    "compute the short-time Fourier transform of a free induction decay"
+    pyppm_math_stft_doc
   },
   { NULL, NULL, 0, NULL }
 };
@@ -1350,7 +1413,7 @@ PyPPM_type_init (PyObject *mod) {
 static PyModuleDef pyppmmodule = {
   PyModuleDef_HEAD_INIT,
   "pyppm",
-  "proton precession magnetometer interface module for python.",
+  pyppm_module_doc,
   -1,
   PyPPM_ModuleMethods,
   NULL, NULL, NULL, NULL
@@ -1382,8 +1445,7 @@ initpyppm (void) {
   if (!pyppm)
     return NULL;
 #else
-  pyppm = Py_InitModule3 ("pyppm", PyPPM_ModuleMethods,
-    "proton precession magnetometer interface module for python.");
+  pyppm = Py_InitModule3 ("pyppm", PyPPM_ModuleMethods, pyppm_module_doc);
   if (!pyppm)
     return;
 #endif
