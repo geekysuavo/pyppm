@@ -93,19 +93,19 @@ P = [... [pyppm.ACQUIRE, 65536, 22.05] ...]
 
 ### `pyppm.TX_RISE`
 
-_FIXME_: This instructions has yet to be finalized.
+_FIXME_: This instruction has yet to be finalized.
 
 ### `pyppm.TX_FALL`
 
-_FIXME_: This instructions has yet to be finalized.
+_FIXME_: This instruction has yet to be finalized.
 
 ### `pyppm.TX_PULSE`
 
-_FIXME_: This instructions has yet to be finalized.
+_FIXME_: This instruction has yet to be finalized.
 
 ### `pyppm.TUNE`
 
-_FIXME_: This instructions has yet to be finalized.
+_FIXME_: This instruction has yet to be finalized.
 
 ### `pyppm.SHIM_X`, `pyppm.SHIM_Y` and `pyppm.SHIM_Z`
 
