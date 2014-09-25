@@ -352,7 +352,8 @@ void pyppm_pack_prog_iter (uint8_t cmd, uint8_t *args, void *pdata) {
 
       /* pack the arguments into the list. */
       d16 = (double) WORD (args[0], args[1]);
-      PyList_Append (l, PyFloat_FromDouble (d16 * 25.0e-3));
+      d16 *= PPM_PULPROG_F_DT_DEADTIME;
+      PyList_Append (l, PyFloat_FromDouble (d16));
 
       /* break out. */
       break;
@@ -367,7 +368,8 @@ void pyppm_pack_prog_iter (uint8_t cmd, uint8_t *args, void *pdata) {
 
       /* pack the arguments into the list. */
       d16 = (double) WORD (args[0], args[1]);
-      PyList_Append (l, PyFloat_FromDouble (d16 * 1.024e-3));
+      d16 *= PPM_PULPROG_F_DT_DELAY;
+      PyList_Append (l, PyFloat_FromDouble (d16));
 
       /* break out. */
       break;
@@ -414,7 +416,8 @@ void pyppm_pack_prog_iter (uint8_t cmd, uint8_t *args, void *pdata) {
 
       /* pack the second argument into the list. */
       d16 = (double) WORD (args[4], args[5]);
-      PyList_Append (l, PyFloat_FromDouble (1.6e+4 / d16));
+      d16 = PPM_PULPROG_F_DT_ACQUIRE / d16;
+      PyList_Append (l, PyFloat_FromDouble (d16));
 
       /* break out. */
       break;
@@ -429,7 +432,8 @@ void pyppm_pack_prog_iter (uint8_t cmd, uint8_t *args, void *pdata) {
 
       /* pack the first argument into the list. */
       d16 = (double) WORD (args[0], args[1]);
-      PyList_Append (l, PyFloat_FromDouble (d16 * 1.024e-3));
+      d16 *= PPM_PULPROG_F_DT_TXEDGE;
+      PyList_Append (l, PyFloat_FromDouble (d16));
 
       /* pack the second argument into the list. */
       a16 = (double) WORD (args[2], args[3]);
@@ -448,7 +452,8 @@ void pyppm_pack_prog_iter (uint8_t cmd, uint8_t *args, void *pdata) {
 
       /* pack the first argument into the list. */
       d16 = (double) WORD (args[0], args[1]);
-      PyList_Append (l, PyFloat_FromDouble (d16 * 1.024e-3));
+      d16 *= PPM_PULPROG_F_DT_TXEDGE;
+      PyList_Append (l, PyFloat_FromDouble (d16));
 
       /* pack the second argument into the list. */
       a16 = (double) WORD (args[2], args[3]);
@@ -467,15 +472,18 @@ void pyppm_pack_prog_iter (uint8_t cmd, uint8_t *args, void *pdata) {
 
       /* pack the first argument into the list. */
       t32 = (double) WORD32 (args[0], args[1], args[2], args[3]);
-      PyList_Append (l, PyFloat_FromDouble (t32 * 4.0e-6));
+      t32 *= PPM_PULPROG_F_DT_TXPULSE;
+      PyList_Append (l, PyFloat_FromDouble (t32));
 
       /* pack the second argument into the list. */
       f32 = (double) WORD32 (args[4], args[5], args[6], args[7]);
-      PyList_Append (l, PyFloat_FromDouble (f32 / (pow (2.0, 16.0) - 1.0)));
+      f32 *= PPM_PULPROG_F_TW_TXPULSE;
+      PyList_Append (l, PyFloat_FromDouble (f32));
 
       /* pack the third argument into the list. */
       a8 = (double) args[8];
-      PyList_Append (l, PyFloat_FromDouble (a8 / (pow (2.0, 8.0) - 1.0)));
+      a8 /= PPM_PULPROG_F_AV_TXPULSE;
+      PyList_Append (l, PyFloat_FromDouble (a8));
 
       /* break out. */
       break;

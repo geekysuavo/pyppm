@@ -8,7 +8,7 @@ def single(t = 10, n = 16384, rate = 20):
     [pyppm.DELAY, t],
     [pyppm.TX_FALL, 400e-3, 0],
     [pyppm.DEADTIME, 1],
-    [pyppm.TX_PULSE, 10e-3, 0.5, 1],
+    [pyppm.TX_PULSE, 10e-3, 2000, 1],
     [pyppm.DEADTIME, 1],
     [pyppm.ACQUIRE, n, rate],
     [pyppm.END]

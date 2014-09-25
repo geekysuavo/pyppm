@@ -223,7 +223,7 @@ void ppm_prog_add_deadtime (ppm_prog *pp, unsigned int *idx, double ms) {
   pp->bytes[(*idx)++] = PPM_PULPROG_DEADTIME;
 
   /* compute and add the argument. */
-  arg16 = (uint16_t) round (ms / 25.0e-3);
+  arg16 = (uint16_t) round (ms / PPM_PULPROG_F_DT_DEADTIME);
   pp->bytes[(*idx)++] = MSB (arg16);
   pp->bytes[(*idx)++] = LSB (arg16);
 }
@@ -239,7 +239,7 @@ void ppm_prog_add_delay (ppm_prog *pp, unsigned int *idx, double s) {
   pp->bytes[(*idx)++] = PPM_PULPROG_DELAY;
 
   /* compute and add the argument. */
-  arg16 = (uint16_t) round (s / 1.024e-3);
+  arg16 = (uint16_t) round (s / PPM_PULPROG_F_DT_DELAY);
   pp->bytes[(*idx)++] = MSB (arg16);
   pp->bytes[(*idx)++] = LSB (arg16);
 }
@@ -294,7 +294,7 @@ void ppm_prog_add_acquire (ppm_prog *pp, unsigned int *idx,
   pp->bytes[(*idx)++] = BYTE0 (arg32);
 
   /* compute and add the second argument. */
-  arg16 = (uint16_t) round (1.6e4 / rate);
+  arg16 = (uint16_t) round (PPM_PULPROG_F_DT_ACQUIRE / rate);
   pp->bytes[(*idx)++] = MSB (arg16);
   pp->bytes[(*idx)++] = LSB (arg16);
 }
@@ -335,19 +335,19 @@ void ppm_prog_add_txpulse (ppm_prog *pp, unsigned int *idx,
   pp->bytes[(*idx)++] = PPM_PULPROG_TXPULSE;
 
   /* compute and add the first argument. */
-  arg32 = (uint32_t) round (t / 4.0e-6);
+  arg32 = (uint32_t) round (t / PPM_PULPROG_F_DT_TXPULSE);
   pp->bytes[(*idx)++] = BYTE3 (arg32);
   pp->bytes[(*idx)++] = BYTE2 (arg32);
   pp->bytes[(*idx)++] = BYTE1 (arg32);
   pp->bytes[(*idx)++] = BYTE0 (arg32);
 
   /* compute and add the second argument. */
-  arg16 = (uint16_t) round (f * (pow (2.0, 16.0) - 1.0));
+  arg16 = (uint16_t) round (f / PPM_PULPROG_F_TW_TXPULSE);
   pp->bytes[(*idx)++] = MSB (arg16);
   pp->bytes[(*idx)++] = LSB (arg16);
 
   /* compute and add the final argument. */
-  arg8 = (uint8_t) round (ampl * (pow (2.0, 8.0) - 1.0));
+  arg8 = (uint8_t) round (ampl * PPM_PULPROG_F_AV_TXPULSE);
   pp->bytes[(*idx)++] = arg8;
 }
 

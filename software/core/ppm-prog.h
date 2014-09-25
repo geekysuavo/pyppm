@@ -42,6 +42,62 @@
 #define PPM_PULPROG_STR_SHIM_Z    "shim-z"
 #define PPM_PULPROG_STR_END       "end"
 
+/* define all pulse program hardware <==> software conversion factors below.
+ */
+
+/* conversion factor: short, imprecise delay.
+ *  - (n is expressed in milliseconds)
+ *  - t_DELAY = 4 * 100 / f_CPU * n
+ *            = 4 * 100 / 16 MHz * n
+ *            = 4 * 100 * 62.5 ns * n
+ *            = 25.0 us * n
+ */
+#define PPM_PULPROG_F_DT_DEADTIME  25.0e-3
+
+/* conversion factor: precise delay.
+ *  - FIXME
+ */
+#define PPM_PULPROG_F_DT_DELAY     1.024e-3
+
+/* conversion factor: acquisition sample rate.
+ *  - (n is the overflow register value)
+ *  - (f_ACQ is expressed in kHz)
+ *  - f_ACQ = f_CPU / n
+ *          = 16 MHz / n
+ *          = 16000 kHz / n
+ */
+#define PPM_PULPROG_F_DT_ACQUIRE   1.6e+4
+
+/* conversion factor: trasmit edge dwell time.
+ *  - FIXME
+ */
+#define PPM_PULPROG_F_DT_TXEDGE    1.024e-3
+
+/* conversion factor: transmit pulse dwell time.
+ *  - (n is expressed in seconds)
+ *  - t_PULSE = (k_TCNT0 / f_CPU) * n
+ *            = (64 / 16 MHz) * n
+ *            = 4.0 us * n
+ */
+#define PPM_PULPROG_F_DT_TXPULSE   4.0e-6
+
+/* conversion factor: transmit pulse frequency tuning word.
+ *  - (B represents the size of the phase accumulator)
+ *  - (n represents the phase accumulation word)
+ *  - f_OUT = f_TIMER / (2 ^ B) * n
+ *          = (f_CPU / k_TCNT0) / (2 ^ B) * n
+ *          = (16 MHz / 64) / (2 ^ 24) * n
+ *          = 250 kHz / 16777216 * n
+ */
+#define PPM_PULPROG_F_TW_TXPULSE \
+  (250.0e+3 / 16777216.0)
+
+/* conversion factor: transmit pulse gain factor.
+ *  - (A) is the human-readable gain factor, A in [0:1].
+ *  - A_DEV = A * 0xff
+ */
+#define PPM_PULPROG_F_AV_TXPULSE 255.0
+
 /* define a structure for holding pulse programs. */
 typedef struct ppm_prog_t {
   /* underlying byte array that mirrors that of the device. */
