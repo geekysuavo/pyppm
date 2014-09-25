@@ -1227,12 +1227,100 @@ PyPPM_AddUnicodeStringConstant (PyObject *module,
 
 PyDoc_STRVAR (
   pyppm_module_doc,
-"" /*FIXME*/
+"PyPPM device management.\n"
+"\n"
+"This module provides a class (PPM) that provides a simple means\n"
+"of communicating with PyPPM-type physical devices.\n"
+"\n"
+"The PyPPM hardware is a single-board solution to the task of\n"
+"performing Nuclear Magnetic Resonance (NMR) experiments using\n"
+"the magnetic field of the earth, or so-called Earth's Field\n"
+"NMR. To use a connected PyPPM device via this module, one must\n"
+"create a 'PPM' instance, download a pulse program to the device\n"
+"via the instance, and execute the pulse program.\n"
+"\n"
+"More information on precisely how to use this module may be\n"
+"found in the Markdown documentation at the PyPPM GitHub\n"
+"repository."
 );
 
 PyDoc_STRVAR (
   pyppm_class_doc,
-"" /*FIXME*/
+"PPM([filename]) -> PPM object\n"
+"\n"
+"Establish communication with a connected PyPPM device. The\n"
+"default filename depends on the operating system, and will\n"
+"correspond to the expected device filename of a USB CDC-ACM\n"
+"device with a serial string equal to 'PyPPM'.\n"
+);
+
+PyDoc_STRVAR (
+  pyppm_class_reset_doc,
+"reset() -> None\n"
+"\n"
+"Perform a hardware reset of the PyPPM device.\n"
+"\n"
+"This will force a reset of the microcontroller of the PyPPM,\n"
+"which in turn causes the USB host controller to re-enumerate\n"
+"the bus, so this action may cause the PyPPM device to\n"
+"re-appear with a different device filename.\n"
+"\n"
+"You should never need to hardware reset the PyPPM in this\n"
+"manner.\n"
+);
+
+PyDoc_STRVAR (
+  pyppm_class_execute_doc,
+"execute() -> None\n"
+"execute() -> (t, a)\n"
+"\n"
+"Execute the pulse program currently loaded onto the PyPPM\n"
+"device.\n"
+"\n"
+"When the currently loaded pulse program contains no\n"
+"'acquire' instructions, this method will return None.\n"
+"\n"
+"When the pulse program does contain one or more 'acquire'\n"
+"instructions, then the tuples t and a will be returned\n"
+"with all acquired samples. Acquired samples will be\n"
+"stored serially in the tuples, meaning that the results\n"
+"of multiple acquisitions will be concatenated. However\n"
+"The time values (in t) of each acquisition will always\n"
+"begin at zero."
+);
+
+PyDoc_STRVAR (
+  pyppm_getset_filename,
+"The device filename. (read/write)\n"
+"\n"
+"The PyPPM device file is only opened during communication\n"
+"with the hardware. This occurs during class instantiation,\n"
+"pulse program transmission and execution, and resets.\n"
+"\n"
+"When the device file is not opened, the filename may be\n"
+"changed to change which connected PyPPM device is being\n"
+"communicated with."
+);
+
+PyDoc_STRVAR (
+  pyppm_getset_version,
+"The device firmware version. (read-only)\n"
+"\n"
+"All supported devices will report major and minor version\n"
+"numbers in a 2-tuple via this read-only property."
+);
+
+PyDoc_STRVAR (
+  pyppm_getset_prog,
+"The device pulse program. (read/write)\n"
+"\n"
+"Pulse programs are represented as lists of lists, where the\n"
+"inner list elements are the individual instructions of the\n"
+"pulse program. Each type of instruction requires a specific\n"
+"set of arguments in it's list.\n"
+"\n"
+"More information on pulse program syntax is available in the\n"
+"PyPPM GitHub repository."
 );
 
 PyDoc_STRVAR (
@@ -1292,12 +1380,12 @@ static PyMethodDef PyPPM_methods[] = {
   { "reset",
     (PyCFunction) PyPPM_reset,
     METH_VARARGS,
-    "performs a hardware reset of the device"
+    pyppm_class_reset_doc
   },
   { "execute",
     (PyCFunction) PyPPM_execute,
     METH_VARARGS,
-    "executes the pulse program stored on the device"
+    pyppm_class_execute_doc
   },
   { NULL }
 };
@@ -1308,19 +1396,19 @@ static PyGetSetDef PyPPM_getset[] = {
   { "filename",
     (getter) PyPPM_getfilename,
     (setter) PyPPM_setfilename,
-    "the device filename",
+    pyppm_getset_filename,
     NULL
   },
   { "version",
     (getter) PyPPM_getversion,
     (setter) PyPPM_setversion,
-    "the device firmware version",
+    pyppm_getset_version,
     NULL
   },
   { "pulprog",
     (getter) PyPPM_getprog,
     (setter) PyPPM_setprog,
-    "the device pulse program",
+    pyppm_getset_prog,
     NULL
   },
   { NULL }
