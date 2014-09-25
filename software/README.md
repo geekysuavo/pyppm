@@ -82,3 +82,10 @@ To run the solvers, just build:
 The Python modules in `py` are really where it's at. For more information on
 how to build, install and use the Python modules, read `py/README.md`.
 
+### Pulse programs
+
+A library of known-good pulse programs has been started in the `pulprogs`
+directory in the form of a pure-Python module/package. More information on
+the available pulse programs and pulse program syntax is available in the
+`pulprogs/README.md` file.
+
