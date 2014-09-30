@@ -75,22 +75,23 @@
 
 /* conversion factor: transmit pulse dwell time.
  *  - (n is expressed in seconds)
- *  - t_PULSE = (k_TCNT0 / f_CPU) * n
- *            = (64 / 16 MHz) * n
- *            = 4.0 us * n
+ *  - t_PULSE = ((k_TCNT0 * n_OVF) / f_CPU) * n
+ *            = ((64 * 3) / 16 MHz) * n
+ *            = 12.0 us * n
  */
-#define PPM_PULPROG_F_DT_TXPULSE   4.0e-6
+#define PPM_PULPROG_F_DT_TXPULSE   12.0e-6
 
 /* conversion factor: transmit pulse frequency tuning word.
  *  - (B represents the size of the phase accumulator)
  *  - (n represents the phase accumulation word)
  *  - f_OUT = f_TIMER / (2 ^ B) * n
- *          = (f_CPU / k_TCNT0) / (2 ^ B) * n
- *          = (16 MHz / 64) / (2 ^ 24) * n
- *          = 250 kHz / 16777216 * n
+ *          = (f_CPU / (k_TCNT0 * n_OVF)) / (2 ^ B) * n
+ *          = (16 MHz / (64 * 3)) / (2 ^ 24) * n
+ *          = 250 kHz / (3 * 16777216) * n
+ *          = 250 kHz / 50331648 * n
  */
 #define PPM_PULPROG_F_TW_TXPULSE \
-  (250.0e+3 / 16777216.0)
+  (250.0e+3 / 50331648.0)
 
 /* conversion factor: transmit pulse gain factor.
  *  - (A) is the human-readable gain factor, A in [0:1].

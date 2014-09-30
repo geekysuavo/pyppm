@@ -293,19 +293,33 @@ TIMER1_COMPA_vect:
   ; deselect the spi adc.
   sbi _SFR_IO_ADDR(GPIO_ADC_PORT), GPIO_ADC_PIN_CS
 
-  ; write the conversion word to the usb host.
+  ; push call-used registers to the stack.
+  push r18
+  push r19
+  push r20
+  push r21
   push r22
   push r23
   push r24
   push r25
+
+  ; write the conversion high byte to the usb host.
   mov r24, r29
   call usb_cdc_putchar
+
+  ; write the conversion low byte to the usb host.
   mov r24, r28
   call usb_cdc_putchar
+
+  ; pop call-used registers from the stack.
   pop r25
   pop r24
   pop r23
   pop r22
+  pop r21
+  pop r20
+  pop r19
+  pop r18
 
   ; increment the (32-bit) overflow counter.
   ldi r26, 0x01
@@ -357,7 +371,8 @@ TIMER0_COMPA_vect:
   lpm r0, Z
 
   ; multiply the lookup table byte by the sine wave gain. (+5 => 13)
-  ; the result is stored as two's complement in r1:r0.
+  ; 1: the result is stored as two's complement in r1:r0.
+  ; 2: the value of r16 is saved and recalled using r26.
   mov r26, r16
   mov r16, r0
   mulsu r16, r17
@@ -371,21 +386,21 @@ TIMER0_COMPA_vect:
 
   ; clock the spi bus eight times. (+16 => 31)
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 1 (R/W)
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 1 (R/W = 0)
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
   cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 2 (Zero)
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 3 (REG2)
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 3 (REG2 = 0)
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 4 (REG1)
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 4 (REG1 = 0)
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 5 (REG0)
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 5 (REG0 = 0)
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 6 (A2)
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 6 (A2 = 0)
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 7 (A1)
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 7 (A1 = 0)
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 8 (A0)
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 8 (A0 = 0)
 
   ; clock out bit 15. (+6 => 37)
   sbrs r1, 7
@@ -518,7 +533,7 @@ TIMER0_COMPA_vect:
   ; deselect the spi dac. (+1 => 128)
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_CS
 
-  ; reset r1 to zero.
+  ; reset r1 to zero, as it should be.
   eor r1, r1
 
   ; increment the (32-bit) overflow counter. (+5 => 133)
@@ -529,10 +544,10 @@ TIMER0_COMPA_vect:
   adc r16, r1
 
   ; check if the overflow counter has reached its target. (+6 => 139)
-  cp r13, r18
-  cpc r14, r19
-  cpc r15, r20
-  cpc r16, r21
+  cp r13, r22
+  cpc r14, r23
+  cpc r15, r24
+  cpc r16, r25
   brne cmp0_end
 
   ; disable the timer/counter0 compare match interrupt.
@@ -593,7 +608,7 @@ ovf0_write:
   ; clock the spi bus five times.
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
   nop
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 1 (R/W)
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 1 (R/W = 0)
   nop
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
   nop
@@ -601,33 +616,33 @@ ovf0_write:
   nop
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
   nop
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 3 (REG2)
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 3 (REG2 = 0)
   nop
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
   nop
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 4 (REG1)
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 4 (REG1 = 0)
   nop
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
   nop
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 5 (REG0)
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 5 (REG0 = 0)
   nop
 
   ; clock the A2 DAC selection bit.
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
   nop
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 6 (A2)
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 6 (A2 = 0)
   nop
 
   ; clock the A1 DAC selection bit.
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
-  sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_MOSI
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 7 (A1)
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_MOSI
+  nop
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 7 (A1 = 0)
+  nop
 
   ; clock the A0 DAC selection bit.
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK
   nop
-  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 8 (A0)
+  cbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_SCK ; 8 (A0 = 0)
   nop
 
   ; clock out bits 15 through 8 (r1).
@@ -707,7 +722,7 @@ tcnt_init:
   ori r20, (1 << CS00)
   st Z, r20
 
-  ; configure timer1 to clear on compare match A.
+  ; configure the timer1 counter to clear on compare match.
   ldi r30, TCCR1B
   ldi r31, 0x00
   ld r20, Z
@@ -725,11 +740,11 @@ tcnt_init:
 ; r2      => status register.
 ; r3      => completion flag.
 ; --
-; r26     => misc.
+; r27:r26 => misc.
 ; r25:r24 => number of overflows to perform.
 ; r23:r22 => starting dac output value.
 ; r21:r20 => accumulation value.
-; r19     => accumulation direction (1 is up, 2 is down, 0 is none).
+; r18/r19 => accumulation direction (1 is up, 2 is down, 0 is none).
 ; r18:r17 => overflow counter.
 .global tcnt0_run_interp
 tcnt0_run_interp:
@@ -753,6 +768,10 @@ tcnt0_run_interp:
   push r28
   push r29
 
+  ; move the direction byte to its final register. this value is passed as
+  ; r18 according to calling convention, but r18:17 need to be used as the
+  ; overflow counter, so the value is copied to r19.
+  mov r19, r18
 
   ; initialize the completion flag.
   ldi r26, 0x00
@@ -762,7 +781,8 @@ tcnt0_run_interp:
   eor r18, r18
   eor r17, r17
 
-  ; configure timer/counter0 for overflows every 1.024 ms
+  ; configure the timer0 counter to overflow every 1.024 ms
+  ; (this sets the counter to normal overflow mode)
   in r26, _SFR_IO_ADDR(TCCR0A)
   andi r26, ~(1 << WGM01)
   out _SFR_IO_ADDR(TCCR0A), r26
@@ -841,7 +861,6 @@ tcnt0_run_pulse:
   push r28
   push r29
 
-
   ; initialize the completion flag.
   ldi r26, 0x00
   mov r3, r26
@@ -857,12 +876,13 @@ tcnt0_run_pulse:
   eor r28, r28
   eor r29, r29
 
-  ; configure timer/counter0 to overflow on compare match A.
+  ; configure the timer0 counter to overflow on compare match.
   in r26, _SFR_IO_ADDR(TCCR0A)
   ori r26, (1 << WGM01)
   out _SFR_IO_ADDR(TCCR0A), r26
 
   ; configure the number of ticks before compare match overflow.
+  ; (this sets the dac dwell time to 3 * 4.0 us => 12.0 us)
   out _SFR_IO_ADDR(OCR0A), 0x03
 
   ; zero the timer counter.
@@ -939,7 +959,6 @@ tcnt1_run_acquire:
   push r28
   push r29
 
-
   ; initialize the completion flag.
   ldi r26, 0x00
   mov r3, r26
@@ -958,7 +977,7 @@ tcnt1_run_acquire:
   ldi r31, 0x00
   st Z, r20
 
-  ; zero the timer counter.
+  ; zero the timer1 counter.
   ldi r30, TCNT1H
   ldi r31, 0x00
   st Z, r1
