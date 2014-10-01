@@ -101,7 +101,20 @@ _FIXME_: This instruction has yet to be finalized.
 
 ### `pyppm.TX_PULSE`
 
-_FIXME_: This instruction has yet to be finalized.
+The 'tx-rise' instruction initiates a sinusoidal pulse on the high-current
+transmit coil output channel. The instruction takes three arguments. The
+first argument to 'tx-rise' is a float that holds the total time the pulse
+will be generated, in seconds. The second argument is a float that holds the
+output frequency in Hz. The final argument is a floating-point scale factor
+(range [0,1]) that is used to set the pulse amplitude.
+
+Note that a scale factor of `0.0` does not indicate a zero-amplitude pulse,
+but rather a pulse without any digital gain applied. A scale factor of `1.0`
+corresponds to 256-fold digital voltage gain.
+
+```python
+P = [... [pyppm.TX_PULSE, 0.1, 2275.0, 0.8] ...]
+```
 
 ### `pyppm.TUNE`
 
