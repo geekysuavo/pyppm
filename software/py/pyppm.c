@@ -38,6 +38,17 @@ static PyTypeObject PyPPM_Type;
  */
 #define PyPPM_DELAY()  (usleep (200000))
 
+/* PyPPM_CHECK_ARGS: macro to check the size of a pulse program
+ * argument list.
+ */
+#define PyPPM_CHECK_ARGS(nlst) \
+  if (PyList_Size (l) != nlst) { \
+    PyErr_Format (PyExc_ValueError, \
+      "expected %d argument(s) for '%s' at index %d", \
+      nlst - 1, str, iL); \
+    return 0; \
+  }
+
 /* PyPPM: the python object structure for ppm types.
  */
 typedef struct {
@@ -95,7 +106,10 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
     /* ensure the object is an allocated list. */
     if (!l || !PyList_Check (l)) {
       /* throw an exception. */
-      PyErr_Format (PyExc_TypeError, "list expected at index %d", iL);
+      PyErr_Format (PyExc_TypeError,
+        "list expected at index %d", iL);
+
+      /* return failure. */
       return 0;
     }
 
@@ -105,7 +119,10 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
     /* ensure the list is non-empty. */
     if (nl < 1) {
       /* throw an exception. */
-      PyErr_SetString (PyExc_ValueError, "list must not be empty");
+      PyErr_Format (PyExc_ValueError,
+        "non-empty list expected at index %d", iL);
+
+      /* return failure. */
       return 0;
     }
 
@@ -123,7 +140,10 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
     bytes = PyUnicode_AsASCIIString (s);
     if (!bytes) {
       /* throw an exception. */
-      PyErr_SetString (PyExc_TypeError, "failed to convert unicode to bytes");
+      PyErr_Format (PyExc_TypeError,
+        "failed to convert unicode at index %d", iL);
+
+      /* return failure. */
       return 0;
     }
 
@@ -131,23 +151,32 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
     str = PyBytes_AsString (bytes);
     if (!str) {
       /* throw an exception. */
-      PyErr_SetString (PyExc_TypeError, "failed to convert bytes to string");
+      PyErr_Format (PyExc_TypeError,
+        "failed to convert bytes at index %d", iL);
+
+      /* return failure. */
       return 0;
     }
 
     /* identify the command byte from the string representation. */
     cmd = ppm_prog_id_from_string (str);
 
+    /* ensure the command byte is actually a byte. */
+    if (cmd > 0xff) {
+      /* throw an exception. */
+      PyErr_Format (PyExc_ValueError,
+        "invalid instruction '%s' at index %d", str, iL);
+
+      /* return failure. */
+      return 0;
+    }
+
     /* act based on the command byte. */
     switch (cmd) {
       /* short, imprecise delay. */
       case PPM_PULPROG_DEADTIME:
         /* ensure the list is sized correctly. */
-        if (PyList_Size (l) != 2) {
-          /* throw an exception. */
-          PyErr_SetString (PyExc_ValueError, "invalid argument count");
-          return 0;
-        }
+        PyPPM_CHECK_ARGS (2);
 
         /* read out the arguments. */
         double dt_ms = PyFloat_AsDouble (PyList_GetItem (l, 1));
@@ -161,11 +190,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
       /* precise delay. */
       case PPM_PULPROG_DELAY:
         /* ensure the list is sized correctly. */
-        if (PyList_Size (l) != 2) {
-          /* throw an exception. */
-          PyErr_SetString (PyExc_ValueError, "invalid argument count");
-          return 0;
-        }
+        PyPPM_CHECK_ARGS (2);
 
         /* read out the arguments. */
         double delay_s = PyFloat_AsDouble (PyList_GetItem (l, 1));
@@ -179,11 +204,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
       /* polarization control. */
       case PPM_PULPROG_POLARIZE:
         /* ensure the list is sized correctly. */
-        if (PyList_Size (l) != 2) {
-          /* throw an exception. */
-          PyErr_SetString (PyExc_ValueError, "invalid argument count");
-          return 0;
-        }
+        PyPPM_CHECK_ARGS (2);
 
         /* read out the arguments. */
         long ccs_en = PyLong_AsLong (PyList_GetItem (l, 1));
@@ -197,11 +218,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
       /* relay control. */
       case PPM_PULPROG_RELAY:
         /* ensure the list is sized correctly. */
-        if (PyList_Size (l) != 2) {
-          /* throw an exception. */
-          PyErr_SetString (PyExc_ValueError, "invalid argument count");
-          return 0;
-        }
+        PyPPM_CHECK_ARGS (2);
 
         /* read out the arguments. */
         long rel_en = PyLong_AsLong (PyList_GetItem (l, 1));
@@ -215,11 +232,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
       /* acquisition. */
       case PPM_PULPROG_ACQUIRE:
         /* ensure the list is sized correctly. */
-        if (PyList_Size (l) != 3) {
-          /* throw an exception. */
-          PyErr_SetString (PyExc_ValueError, "invalid argument count");
-          return 0;
-        }
+        PyPPM_CHECK_ARGS (3);
 
         /* read out the arguments. */
         long acq_pts = PyLong_AsLong (PyList_GetItem (l, 1));
@@ -235,11 +248,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
       case PPM_PULPROG_TXRISE:
       case PPM_PULPROG_TXFALL:
         /* ensure the list is sized correctly. */
-        if (PyList_Size (l) != 3) {
-          /* throw an exception. */
-          PyErr_SetString (PyExc_ValueError, "invalid argument count");
-          return 0;
-        }
+        PyPPM_CHECK_ARGS (3);
 
         /* read out the arguments. */
         double txe_ms = PyFloat_AsDouble (PyList_GetItem (l, 1));
@@ -254,11 +263,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
       /* sinusoidal pulse. */
       case PPM_PULPROG_TXPULSE:
         /* ensure the list is sized correctly. */
-        if (PyList_Size (l) != 4) {
-          /* throw an exception. */
-          PyErr_SetString (PyExc_ValueError, "invalid argument count");
-          return 0;
-        }
+        PyPPM_CHECK_ARGS (4);
 
         /* read out the arguments. */
         double pul_t = PyFloat_AsDouble (PyList_GetItem (l, 1));
@@ -268,18 +273,13 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
         /* add the command bytes into the pulse program array. */
         ppm_prog_add_txpulse (pp, &ipp, pul_t, pul_f, pul_a);
 
-
         /* break out. */
         break;
 
       /* capacitive tuning. */
       case PPM_PULPROG_TUNE:
         /* ensure the list is sized correctly. */
-        if (PyList_Size (l) != 2) {
-          /* throw an exception. */
-          PyErr_SetString (PyExc_ValueError, "invalid argument count");
-          return 0;
-        }
+        PyPPM_CHECK_ARGS (2);
 
         /* read out the arguments. */
         double tun_f = PyFloat_AsDouble (PyList_GetItem (l, 1));
@@ -295,18 +295,13 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
       case PPM_PULPROG_SHIM_Y:
       case PPM_PULPROG_SHIM_Z:
         /* ensure the list is sized correctly. */
-        if (PyList_Size (l) != 2) {
-          /* throw an exception. */
-          PyErr_SetString (PyExc_ValueError, "invalid argument count");
-          return 0;
-        }
+        PyPPM_CHECK_ARGS (2);
 
         /* read out the arguments. */
         double shm = PyFloat_AsDouble (PyList_GetItem (l, 1));
 
         /* add the command bytes into the pulse program array. */
         ppm_prog_add_shim (pp, &ipp, cmd, shm);
-
 
         /* break out. */
         break;
@@ -318,7 +313,10 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
       /* unrecognized command. */
       default:
         /* throw an exception. */
-        PyErr_SetString (PyExc_ValueError, "unrecognized command byte");
+        PyErr_Format (PyExc_ValueError,
+          "unrecognized command %02x at index %d", cmd, iL);
+
+        /* return failure. */
         return 0;
     }
   }

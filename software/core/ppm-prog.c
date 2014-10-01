@@ -111,7 +111,7 @@ unsigned int ppm_prog_id_from_string (const char *str) {
   }
 
   /* return failure. */
-  return PPM_PULPROG_END;
+  return PPM_PULPROG_INVALID;
 }
 
 /* ppm_prog_iterate: iterates over the commands of a pulse program. */

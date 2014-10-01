@@ -52,4 +52,7 @@
 #define PPM_PULPROG_SHIM_Z    0x0c
 #define PPM_PULPROG_END       0x00
 
+/* define an (obviously) invalid pulse program code. */
+#define PPM_PULPROG_INVALID   0xffff
+
 #endif /* __PPM_MSG_H__ */
