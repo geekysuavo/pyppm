@@ -55,7 +55,11 @@
 #define PPM_PULPROG_F_DT_DEADTIME  25.0e-3
 
 /* conversion factor: precise delay.
- *  - FIXME
+ *  - t_DELAY = 256 * n / f_TIMER
+ *            = 256 * n / (f_CPU / k_TCNT0)
+ *            = 256 * n / (16 MHz / 64)
+ *            = 256 * n / 250 kHz
+ *            = 1.024 ms * n
  */
 #define PPM_PULPROG_F_DT_DELAY     1.024e-3
 

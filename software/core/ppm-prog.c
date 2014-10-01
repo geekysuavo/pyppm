@@ -328,7 +328,6 @@ void ppm_prog_add_txpulse (ppm_prog *pp, unsigned int *idx,
                            double t, double f, double ampl) {
   /* declare required variables. */
   uint32_t arg32;
-  uint16_t arg16;
   uint8_t arg8;
 
   /* add the command. */
@@ -342,9 +341,11 @@ void ppm_prog_add_txpulse (ppm_prog *pp, unsigned int *idx,
   pp->bytes[(*idx)++] = BYTE0 (arg32);
 
   /* compute and add the second argument. */
-  arg16 = (uint16_t) round (f / PPM_PULPROG_F_TW_TXPULSE);
-  pp->bytes[(*idx)++] = MSB (arg16);
-  pp->bytes[(*idx)++] = LSB (arg16);
+  arg32 = (uint32_t) round (f / PPM_PULPROG_F_TW_TXPULSE);
+  pp->bytes[(*idx)++] = BYTE3 (arg32);
+  pp->bytes[(*idx)++] = BYTE2 (arg32);
+  pp->bytes[(*idx)++] = BYTE1 (arg32);
+  pp->bytes[(*idx)++] = BYTE0 (arg32);
 
   /* compute and add the final argument. */
   arg8 = (uint8_t) round (ampl * PPM_PULPROG_F_AV_TXPULSE);
