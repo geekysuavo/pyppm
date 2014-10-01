@@ -583,8 +583,10 @@ TIMER0_OVF_vect:
   sbrc r19, 1
   rjmp ovf0_sub
 
-  ; we skipped both relative jumps. no change will be made to the dac value.
-  rjmp ovf0_write
+  ; we skipped both relative jumps. no change will be made to the dac value,
+  ; so we can skip writing data to the dac. this makes delay interrupts
+  ; more efficient, as they don't change the dac value.
+  rjmp ovf0_nowrite
 
 ovf0_add:
   ; add the accumulation value into the dac output registers.
@@ -596,7 +598,6 @@ ovf0_sub:
   ; subtract the accumulation value from the dac output registers.
   sub r22, r20
   sbc r23, r21
-  rjmp ovf0_write
 
   ; select the spi dac.
 ovf0_write:
@@ -679,6 +680,7 @@ ovf0_lo_clock:
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_CS
 
   ; increment the (16-bit) overflow counter.
+ovf0_nowrite:
   ldi r26, 0x01
   add r17, r26
   adc r18, r1
@@ -795,7 +797,7 @@ tcnt0_run_interp:
   st Z, r26
 
   ; loop until the completion flag is raised.
-  cp r3, 0x00
+  cp r3, r1
   breq .-4
 
   ; return the final value of the dac output registers.
@@ -900,7 +902,7 @@ tcnt0_run_pulse:
   ldi r31, hi8(tcnt_dds_lut)
 
   ; loop until the completion flag is raised.
-  cp r3, 0x00
+  cp r3, r1
   breq .-4
 
   ; pop protected registers from the stack.
@@ -993,7 +995,7 @@ tcnt1_run_acquire:
   st Z, r26
 
   ; loop until the completion flag is raised.
-  cp r3, 0x00
+  cp r3, r1
   breq .-4
 
   ; pop protected registers from the stack.
