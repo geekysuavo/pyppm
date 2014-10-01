@@ -104,10 +104,14 @@ unsigned int ppm_prog_id_from_string (const char *str) {
   unsigned int i;
 
   /* loop through the commands array. */
-  for (i = 0; cmds[i].id != PPM_PULPROG_END; i++) {
+  for (i = 0;; i++) {
     /* check if there is a string match. */
     if (strcmp (str, cmds[i].str) == 0)
       return cmds[i].id;
+
+    /* check if we've reached the end of the array. */
+    if (cmds[i].id == PPM_PULPROG_END)
+      break;
   }
 
   /* return failure. */
