@@ -91,6 +91,9 @@ rate, in kilosamples per second:
 P = [... [pyppm.ACQUIRE, 65536, 22.05] ...]
 ```
 
+The maximum achievable sample rate on the PyPPM 1.x boards is around 30 kS/s.
+The maximum achievable sample rate on the PyPPM 2.x boards is above 100 kS/s.
+
 ### `pyppm.TX_RISE`
 
 _FIXME_: This instruction has yet to be finalized.
