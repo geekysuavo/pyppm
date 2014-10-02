@@ -48,6 +48,9 @@ argument, which is the delay time in milliseconds:
 P = [... [pyppm.DEADTIME, 15] ...]
 ```
 
+* The dead time argument may be any positive value less than 1500
+milliseconds.
+
 ### `pyppm.DELAY`
 
 The 'delay' instruction tells the device to execute a precisely timed delay
@@ -58,6 +61,8 @@ is the delay time in seconds:
 P = [... [pyppm.DELAY, 2.5] ...]
 ```
 
+* The delay time argument may be any positive value less than 65 seconds.
+
 ### `pyppm.POLARIZE`
 
 The 'polarize' instruction takes a single boolean argument, which states
@@ -66,6 +71,8 @@ whether to enable or disable the non-adiabatic polarization current sink:
 ```python
 P = [... [pyppm.POLARIZE, True] ...]
 ```
+
+* The polarization argument must be a boolean.
 
 ### `pyppm.RELAY`
 
@@ -79,6 +86,8 @@ to the low-noise analog signal chain for acquisition:
 P = [... [pyppm.RELAY, False] ...]
 ```
 
+* The relay argument must be a boolean.
+
 ### `pyppm.ACQUIRE`
 
 The 'acquire' instruction tells the device to read a set number of digital
@@ -91,22 +100,33 @@ rate, in kilosamples per second:
 P = [... [pyppm.ACQUIRE, 65536, 22.05] ...]
 ```
 
-The maximum achievable sample rate on the PyPPM 1.x boards is around 30 kS/s.
-The maximum achievable sample rate on the PyPPM 2.x boards is above 100 kS/s.
+* The sample count argument may be any positive integer less than around
+four billion.
+* The sample rate argument may be any positive value less than a value that
+depends on the hardware platform:
+  * PyPPM 1.x: 30 kS/s
+  * PyPPM 2.x: 100 kS/s
 
-### `pyppm.TX_RISE`
+### `pyppm.TX_RISE` and `pyppm.TX_FALL`
 
-_FIXME_: This instruction has yet to be finalized.
+The 'tx-rise' and 'tx-fall' instructions tell the device to ramp the
+high-current transmit coil output voltage up or down, respectively. The
+instructions both take two arguments. The first argument is a float that
+holds the total time of the edge, in milliseconds. The second argument is
+a float that holds the final amplitude of the edge:
 
-### `pyppm.TX_FALL`
+```python
+P = [... [pyppm.TX_RISE, 250, -0.8] ...]
+```
 
-_FIXME_: This instruction has yet to be finalized.
+* The rise/fall time argument may be any positive value less than 10,000.
+* The amplitude argument may be any value between -1 and +1.
 
 ### `pyppm.TX_PULSE`
 
-The 'tx-rise' instruction initiates a sinusoidal pulse on the high-current
+The 'tx-pulse' instruction initiates a sinusoidal pulse on the high-current
 transmit coil output channel. The instruction takes three arguments. The
-first argument to 'tx-rise' is a float that holds the total time the pulse
+first argument to 'tx-pulse' is a float that holds the total time the pulse
 will be generated, in seconds. The second argument is a float that holds the
 output frequency in Hz. The final argument is a floating-point scale factor
 (range [0,1]) that is used to set the pulse amplitude.
@@ -119,13 +139,35 @@ corresponds to 256-fold digital voltage gain.
 P = [... [pyppm.TX_PULSE, 0.1, 2275.0, 0.8] ...]
 ```
 
+* The pulse time argument may be any positive value less than 10,000.
+* The pulse frequency may be any positive value less than 10,000.
+* The pulse gain may be any value between 0 and +1.
+
 ### `pyppm.TUNE`
 
-_FIXME_: This instruction has yet to be finalized.
+The 'tune' instruction instructs the device to change the currently set
+tuning frequency in the capacitive switch bank. The instruction takes a
+single argument that holds the desired tuning frequency, in Hertz. If a
+frequency value of zero is passed, the tuning bank is switched off:
+
+```python
+P = [... [pyppm.TUNE, 1250] ...]
+```
+
+* The frequency argument may be any positive value less than 10,000.
 
 ### `pyppm.SHIM_X`, `pyppm.SHIM_Y` and `pyppm.SHIM_Z`
 
-_FIXME_: These instructions have yet to be finalized.
+The 'shim-x', 'shim-y' and 'shim-z' instructions instruct the device to change
+the currently set shim value, on the desired axis and provided the hardware
+supports shimming along said axis. The instructions take a single value that
+holds the shim output value:
+
+```python
+P = [... [pyppm.SHIM, -0.2] ...]
+```
+
+* The shim argument may be any value between -1 and +1.
 
 ### `pyppm.END`
 

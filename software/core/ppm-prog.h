@@ -46,7 +46,7 @@
  */
 
 /* conversion factor: short, imprecise delay.
- *  - (n is expressed in milliseconds)
+ *  - (factor is expressed in milliseconds)
  *  - t_DELAY = 4 * 100 / f_CPU * n
  *            = 4 * 100 / 16 MHz * n
  *            = 4 * 100 * 62.5 ns * n
@@ -73,9 +73,19 @@
 #define PPM_PULPROG_F_DT_ACQUIRE   1.6e+4
 
 /* conversion factor: trasmit edge dwell time.
- *  - FIXME
+ *  - (factor is expressed in milliseconds)
+ *  - t_DELAY = n / f_TCNT0
+ *            = n / (f_CPU / (k_TCNT0 * 0xff))
+ *            = n / (16 MHz / (64 * 0xff))
+ *            = 1.024 ms * n
  */
-#define PPM_PULPROG_F_DT_TXEDGE    1.024e-3
+#define PPM_PULPROG_F_DT_TXEDGE    1.024
+
+/* conversion factor: transmit edge gain factor.
+ *  - (A may range from -1 to +1)
+ *  - A_DEV = A * (2 ^ 15)
+ */
+#define PPM_PULPROG_F_AV_TXEDGE    32767.0
 
 /* conversion factor: transmit pulse dwell time.
  *  - (n is expressed in seconds)
@@ -98,10 +108,16 @@
   (250.0e+3 / 50331648.0)
 
 /* conversion factor: transmit pulse gain factor.
- *  - (A) is the human-readable gain factor, A in [0:1].
+ *  - (A is the human-readable gain factor, A in [0:1])
  *  - A_DEV = A * 0xff
  */
 #define PPM_PULPROG_F_AV_TXPULSE 255.0
+
+/* conversion factor: shim gain factor.
+ *  - (A is the human-readable gain factor, A in [-1:1])
+ *  - A_DEV = A * (2 ^ 15)
+ */
+#define PPM_PULPROG_F_AV_SHIM    32767.0
 
 /* define a structure for holding pulse programs. */
 typedef struct ppm_prog_t {
@@ -129,27 +145,27 @@ unsigned int ppm_prog_samples (ppm_prog *pp);
 
 void ppm_prog_timings (ppm_prog *pp, ppm_data *acq);
 
-void ppm_prog_add_deadtime (ppm_prog *pp, unsigned int *idx, double ms);
+int ppm_prog_add_deadtime (ppm_prog *pp, unsigned int *idx, double ms);
 
-void ppm_prog_add_delay (ppm_prog *pp, unsigned int *idx, double s);
+int ppm_prog_add_delay (ppm_prog *pp, unsigned int *idx, double s);
 
-void ppm_prog_add_polarize (ppm_prog *pp, unsigned int *idx, long en);
+int ppm_prog_add_polarize (ppm_prog *pp, unsigned int *idx, long en);
 
-void ppm_prog_add_relay (ppm_prog *pp, unsigned int *idx, long en);
+int ppm_prog_add_relay (ppm_prog *pp, unsigned int *idx, long en);
 
-void ppm_prog_add_acquire (ppm_prog *pp, unsigned int *idx,
-                           long n, double rate);
+int ppm_prog_add_acquire (ppm_prog *pp, unsigned int *idx,
+                          long n, double rate);
 
-void ppm_prog_add_txedge (ppm_prog *pp, unsigned int *idx, uint8_t cmd,
-                          double ms, double ampl);
+int ppm_prog_add_txedge (ppm_prog *pp, unsigned int *idx, uint8_t cmd,
+                         double ms, double ampl);
 
-void ppm_prog_add_txpulse (ppm_prog *pp, unsigned int *idx,
-                           double t, double f, double ampl);
+int ppm_prog_add_txpulse (ppm_prog *pp, unsigned int *idx,
+                          double t, double f, double ampl);
 
-void ppm_prog_add_tune (ppm_prog *pp, unsigned int *idx, double f);
+int ppm_prog_add_tune (ppm_prog *pp, unsigned int *idx, double f);
 
-void ppm_prog_add_shim (ppm_prog *pp, unsigned int *idx, uint8_t cmd,
-                        double s);
+int ppm_prog_add_shim (ppm_prog *pp, unsigned int *idx, uint8_t cmd,
+                       double s);
 
 void ppm_prog_read (FILE *fh, ppm_prog *pp);
 

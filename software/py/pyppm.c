@@ -49,6 +49,17 @@ static PyTypeObject PyPPM_Type;
     return 0; \
   }
 
+/* PyPPM_PROG_ADD: macro to assert the successful addition of a pulse program
+ * instruction into a ppm_prog data structure.
+ */
+#define PyPPM_PROG_ADD(stmt) \
+  if (!ppm_prog_add_##stmt) { \
+    PyErr_Format (PyExc_ValueError, \
+      "failed to compile instruction '%s' at index %d", \
+      str, iL); \
+    return 0; \
+  }
+
 /* PyPPM: the python object structure for ppm types.
  */
 typedef struct {
@@ -210,7 +221,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
         long ccs_en = PyLong_AsLong (PyList_GetItem (l, 1));
 
         /* add the command bytes into the pulse program array. */
-        ppm_prog_add_polarize (pp, &ipp, ccs_en);
+        PyPPM_PROG_ADD (polarize (pp, &ipp, ccs_en));
 
         /* break out. */
         break;
@@ -224,7 +235,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
         long rel_en = PyLong_AsLong (PyList_GetItem (l, 1));
 
         /* add the command bytes into the pulse program array. */
-        ppm_prog_add_relay (pp, &ipp, rel_en);
+        PyPPM_PROG_ADD (relay (pp, &ipp, rel_en));
 
         /* break out. */
         break;
@@ -239,7 +250,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
         double acq_rate = PyFloat_AsDouble (PyList_GetItem (l, 2));
 
         /* add the command bytes into the pulse program array. */
-        ppm_prog_add_acquire (pp, &ipp, acq_pts, acq_rate);
+        PyPPM_PROG_ADD (acquire (pp, &ipp, acq_pts, acq_rate));
 
         /* break out. */
         break;
@@ -255,7 +266,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
         double txe_amp = PyFloat_AsDouble (PyList_GetItem (l, 2));
 
         /* add the command bytes into the pulse program array. */
-        ppm_prog_add_txedge (pp, &ipp, cmd, txe_ms, txe_amp);
+        PyPPM_PROG_ADD (txedge (pp, &ipp, cmd, txe_ms, txe_amp));
 
         /* break out. */
         break;
@@ -271,7 +282,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
         double pul_a = PyFloat_AsDouble (PyList_GetItem (l, 3));
 
         /* add the command bytes into the pulse program array. */
-        ppm_prog_add_txpulse (pp, &ipp, pul_t, pul_f, pul_a);
+        PyPPM_PROG_ADD (txpulse (pp, &ipp, pul_t, pul_f, pul_a));
 
         /* break out. */
         break;
@@ -285,7 +296,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
         double tun_f = PyFloat_AsDouble (PyList_GetItem (l, 1));
 
         /* add the command bytes into the pulse program array. */
-        ppm_prog_add_tune (pp, &ipp, tun_f);
+        PyPPM_PROG_ADD (tune (pp, &ipp, tun_f));
 
         /* break out. */
         break;
@@ -301,7 +312,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
         double shm = PyFloat_AsDouble (PyList_GetItem (l, 1));
 
         /* add the command bytes into the pulse program array. */
-        ppm_prog_add_shim (pp, &ipp, cmd, shm);
+        PyPPM_PROG_ADD (shim (pp, &ipp, cmd, shm));
 
         /* break out. */
         break;
