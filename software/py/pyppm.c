@@ -193,7 +193,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
         double dt_ms = PyFloat_AsDouble (PyList_GetItem (l, 1));
 
         /* add the command bytes into the pulse program array. */
-        ppm_prog_add_deadtime (pp, &ipp, dt_ms);
+        PyPPM_PROG_ADD (deadtime (pp, &ipp, dt_ms));
 
         /* break out. */
         break;
@@ -207,7 +207,7 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
         double delay_s = PyFloat_AsDouble (PyList_GetItem (l, 1));
 
         /* add the command bytes into the pulse program array. */
-        ppm_prog_add_delay (pp, &ipp, delay_s);
+        PyPPM_PROG_ADD (delay (pp, &ipp, delay_s));
 
         /* break out. */
         break;
