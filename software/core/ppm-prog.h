@@ -162,7 +162,7 @@ int ppm_prog_add_txedge (ppm_prog *pp, unsigned int *idx, uint8_t cmd,
 int ppm_prog_add_txpulse (ppm_prog *pp, unsigned int *idx,
                           double t, double f, double ampl);
 
-int ppm_prog_add_tune (ppm_prog *pp, unsigned int *idx, double f);
+int ppm_prog_add_tune (ppm_prog *pp, unsigned int *idx, double f, double L);
 
 int ppm_prog_add_shim (ppm_prog *pp, unsigned int *idx, uint8_t cmd,
                        double s);

@@ -7,9 +7,9 @@ def acquire(n = 16384, rate = 20):
     [pyppm.END]
   ]
 
-def retune(f):
+def retune(f = 0, L = 14.62e-3):
   return [
-    [pyppm.TUNE, f],
+    [pyppm.TUNE, f, L],
     [pyppm.END]
   ]
 

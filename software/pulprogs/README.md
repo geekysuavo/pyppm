@@ -146,15 +146,17 @@ P = [... [pyppm.TX_PULSE, 0.1, 2275.0, 0.8] ...]
 ### `pyppm.TUNE`
 
 The 'tune' instruction instructs the device to change the currently set
-tuning frequency in the capacitive switch bank. The instruction takes a
-single argument that holds the desired tuning frequency, in Hertz. If a
-frequency value of zero is passed, the tuning bank is switched off:
+tuning frequency in the capacitive switch bank. The instruction takes two
+float arguments: one that holds the desired tuning frequency in Hertz, and
+a second that holds the sensor coil inductance in Henries. If a frequency
+value of zero is passed, the tuning bank is switched off:
 
 ```python
-P = [... [pyppm.TUNE, 1250] ...]
+P = [... [pyppm.TUNE, 1250, 14.62e-3] ...]
 ```
 
 * The frequency argument may be any positive value less than 10,000.
+* The inductance argument may be any positive value.
 
 ### `pyppm.SHIM_X`, `pyppm.SHIM_Y` and `pyppm.SHIM_Z`
 

@@ -43,6 +43,7 @@
 
 /* include ppm headers. */
 #include "ppm-hw.h"
+#include "ppm-tune.h"
 #include "ppm-prog.h"
 #include "ppm-math.h"
 #include "ppm-data.h"

@@ -16,7 +16,7 @@ CFLAGS=-Wall -I../core -fPIC
 LDFLAGS=-lm
 
 # define the core 'library' objects used in all compiled executables.
-COREOBJ=ppm.o ppm-prog.o ppm-hw.o ppm-math.o ppm-data.o ppm-fall.o
+COREOBJ=ppm.o ppm-tune.o ppm-prog.o ppm-hw.o ppm-math.o ppm-data.o ppm-fall.o
 
 # add the core objects onto the list of target objects.
 OBJECTS+= $(COREOBJ)

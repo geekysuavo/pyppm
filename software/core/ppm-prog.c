@@ -421,7 +421,7 @@ int ppm_prog_add_txpulse (ppm_prog *pp, unsigned int *idx,
 /* ppm_prog_add_tune: adds a tuning command at the current index.
  * updates the index to just past the command and its arguments.
  */
-int ppm_prog_add_tune (ppm_prog *pp, unsigned int *idx, double f) {
+int ppm_prog_add_tune (ppm_prog *pp, unsigned int *idx, double f, double L) {
   /* declare required variables. */
   uint16_t arg16;
 
@@ -429,13 +429,15 @@ int ppm_prog_add_tune (ppm_prog *pp, unsigned int *idx, double f) {
   if (f < 0.0 || f > 10000.0)
     return 0;
 
-  /* FIXME: properly compute the ideal shimming word. */
+  /* validate the extra data. */
+  if (L <= 0.0)
+    return 0;
 
   /* add the command. */
   pp->bytes[(*idx)++] = PPM_PULPROG_TUNE;
 
   /* compute and add the argument. */
-  arg16 = (uint16_t) round (f * (pow (2.0, 16.0) - 1.0));
+  arg16 = ppm_tune_optimize (f, L);
   pp->bytes[(*idx)++] = MSB (arg16);
   pp->bytes[(*idx)++] = LSB (arg16);
 

@@ -290,13 +290,14 @@ pyppm_unpack_prog (PyObject *L, ppm_prog *pp) {
       /* capacitive tuning. */
       case PPM_PULPROG_TUNE:
         /* ensure the list is sized correctly. */
-        PyPPM_CHECK_ARGS (2);
+        PyPPM_CHECK_ARGS (3);
 
         /* read out the arguments. */
         double tun_f = PyFloat_AsDouble (PyList_GetItem (l, 1));
+        double tun_L = PyFloat_AsDouble (PyList_GetItem (l, 2));
 
         /* add the command bytes into the pulse program array. */
-        PyPPM_PROG_ADD (tune (pp, &ipp, tun_f));
+        PyPPM_PROG_ADD (tune (pp, &ipp, tun_f, tun_L));
 
         /* break out. */
         break;
