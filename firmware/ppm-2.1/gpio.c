@@ -21,6 +21,10 @@
 
 /* gpio_init: initialize general purpose input/output pins. */
 void gpio_init (void) {
+  /* disable JTAG access to the pins of PORTF. */
+  MCUCR |= (1 << JTD);
+  MCUCR |= (1 << JTD);
+
   /* initialize all PORTB GPIO to hi-z. */
   DDRB = 0;
   PORTB = 0;

@@ -65,7 +65,7 @@ $(TARGETS): $(OBJECTS)
 # define a rule for cleaning any previously built files.
 clean:
 	@echo " CLEAN"
-	@$(RM) $(TARGETS) $(OBJECTS) $(COREOBJ) fid spect wf fid.wav
+	@$(RM) $(TARGETS) $(OBJECTS) $(COREOBJ) pp fid spect wf fid.wav
 
 # define a rule to quickly rebuild all target files.
 again: clean all

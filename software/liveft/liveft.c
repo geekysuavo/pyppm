@@ -34,14 +34,69 @@
 #define N_ACQ 2048
 #define N_AVE 8
 
+/* define the sensor coil inductance. */
+#define SENSOR_L 17.64e-3
+
 /* declare required persistent PPM data elements. */
 ppm_data tacq, facq[N_AVE], fave, fmem;
+int i_ave, retune, fd;
 ppm_prog pulprog;
-int i_ave, fd;
 
 /* declare required persistent GL data elements. */
 float xmin, xmax, xmark, ymin, ymax, ymark, step;
 int win;
+
+/* liveft_wpp_tune: sets the device to a tuning pulse program.
+ */
+int liveft_wpp_tune (void) {
+  /* declare required variables. */
+  double fmark, C0;
+  uint16_t wd;
+
+  /* compute the tuning capacitance. */
+  fmark = xmark * fave.x[fave.n - 1];
+  if (fmark > 0.0)
+    C0 = 1.0 / (pow (2.0 * M_PI * fmark, 2.0) * SENSOR_L);
+  else
+    C0 = 0.0;
+
+  /* search for the optimal tuning word. */
+  wd = ppm_tune_optimize (C0);
+
+  /* write a pulse program for retuning. */
+  pulprog.bytes[0] = PPM_PULPROG_TUNE;
+  pulprog.bytes[1] = MSB (wd);
+  pulprog.bytes[2] = LSB (wd);
+  pulprog.bytes[3] = PPM_PULPROG_END;
+
+  /* try to write the pulse program. */
+  if (!ppm_wpp_fd (fd, &pulprog))
+    return 0;
+
+  /* return success. */
+  return 1;
+}
+
+/* liveft_wpp_acq: sets the device to an acquisition pulse program.
+ */
+int liveft_wpp_acq (void) {
+  /* write a pulse program for continuous acquisition. */
+  pulprog.bytes[0] = PPM_PULPROG_ACQUIRE;
+  pulprog.bytes[1] = BYTE3 (N_ACQ);
+  pulprog.bytes[2] = BYTE2 (N_ACQ);
+  pulprog.bytes[3] = BYTE1 (N_ACQ);
+  pulprog.bytes[4] = BYTE0 (N_ACQ);
+  pulprog.bytes[5] = MSB (1600);
+  pulprog.bytes[6] = LSB (1600);
+  pulprog.bytes[7] = PPM_PULPROG_END;
+
+  /* try to write the pulse program. */
+  if (!ppm_wpp_fd (fd, &pulprog))
+    return 0;
+
+  /* return success. */
+  return 1;
+}
 
 /* liveft_gl_init: window init function for GLUT.
  */
@@ -106,6 +161,18 @@ void liveft_gl_draw (void) {
   /* declare required variables. */
   float x1, x2, y1, y2;
   unsigned int i, j;
+
+  /* check if we need to retune. */
+  if (retune) {
+    /* set the retuning pulse program. */
+    if (!liveft_wpp_tune () ||
+        !ppm_zg_fd (fd, &pulprog, &tacq) ||
+        !liveft_wpp_acq ())
+      glutDestroyWindow (win);
+
+    /* don't retune again. */
+    retune = 0;
+  }
 
   /* acquire a new packet of data. */
   if (!ppm_zg_fd (fd, &pulprog, &tacq))
@@ -247,6 +314,15 @@ void liveft_gl_keyboard (unsigned char key, int x, int y) {
     /* set the marker. */
     liveft_set_marker (x, y);
   }
+  else if (key == 't') {
+    /* enable frequency tuning. */
+    retune = 1;
+  }
+  else if (key == 'T') {
+    /* disable frequency tuning. */
+    xmark = ymark = 0.0;
+    retune = 1;
+  }
   else if (key == 'w') {
     /* move the horizontal marker up. */
     ymark += step;
@@ -304,6 +380,9 @@ void liveft_gl_mouse (int button, int state, int x, int y) {
 
 /* main: application entry point. */
 int main (int argc, char **argv) {
+  /* turn off tuning. */
+  retune = 0;
+
   /* try to access the device. */
   fd = ppm_device_open (NULL);
   if (fd < 0)
@@ -317,17 +396,7 @@ int main (int argc, char **argv) {
     return 1;
 
   /* write a pulse program for continuous acquisition. */
-  pulprog.bytes[0] = PPM_PULPROG_ACQUIRE;
-  pulprog.bytes[1] = BYTE3 (N_ACQ);
-  pulprog.bytes[2] = BYTE2 (N_ACQ);
-  pulprog.bytes[3] = BYTE1 (N_ACQ);
-  pulprog.bytes[4] = BYTE0 (N_ACQ);
-  pulprog.bytes[5] = MSB (1600);
-  pulprog.bytes[6] = LSB (1600);
-  pulprog.bytes[7] = PPM_PULPROG_END;
-
-  /* try to write the pulse program. */
-  if (!ppm_wpp_fd (fd, &pulprog))
+  if (!liveft_wpp_acq ())
     return 1;
 
   /* initialize the GLUT state. */

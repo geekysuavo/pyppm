@@ -268,9 +268,9 @@
  */
 #define gpio_tune_clock() \
   GPIO_TUNE_PORT &= ~(1 << GPIO_TUNE_PIN_SCK); \
-  _delay_us (4.0); \
+  _delay_us (20.0); \
   GPIO_TUNE_PORT |= (1 << GPIO_TUNE_PIN_SCK); \
-  _delay_us (4.0);
+  _delay_us (20.0);
 
 /* gpio_tune_mosi_lo: sends the switch MOSI line low (through an inverted
  * optoisolated output).

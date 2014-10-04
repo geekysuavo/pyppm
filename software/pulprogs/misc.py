@@ -1,4 +1,5 @@
 
+import math
 import pyppm
 
 def acquire(n = 16384, rate = 20):
@@ -7,9 +8,10 @@ def acquire(n = 16384, rate = 20):
     [pyppm.END]
   ]
 
-def retune(f = 0, L = 14.62e-3):
+def retune(f = 1000, L = 14.62e-3):
+  C = 1 / (((2 * math.pi * f) ** 2) * L)
   return [
-    [pyppm.TUNE, f, L],
+    [pyppm.TUNE, C],
     [pyppm.END]
   ]
 

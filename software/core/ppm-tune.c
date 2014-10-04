@@ -59,23 +59,20 @@ double ppm_tune_capacitance (uint16_t wd) {
  * word values to identify the tuning word that most nearly yields the
  * desired resonance frequency.
  */
-uint16_t ppm_tune_optimize (double f0, double L) {
+uint16_t ppm_tune_optimize (double C0) {
   /* declare required variables. */
-  double C, C0;
   uint16_t wd;
+  double C;
   int i;
 
   /* initialize the output word. */
   wd = 0x0000;
 
-  /* return a zero output word (all switches open) if a zero frequency was
+  /* return a zero output word (all switches open) if a zero value was
    * provided.
    */
-  if (f0 == 0.0)
+  if (C0 == 0.0)
     return wd;
-
-  /* compute the desired capacitance value. */
-  C0 = 1.0 / (4.0 * M_PI * M_PI * f0 * f0 * L);
 
   /* loop backwards through the bits of the word. */
   for (i = 15; i >= 0; i--) {

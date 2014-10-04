@@ -31,7 +31,7 @@
 
 double ppm_tune_capacitance (uint16_t wd);
 
-uint16_t ppm_tune_optimize (double f0, double L);
+uint16_t ppm_tune_optimize (double C0);
 
 /* ensure proper inclusion. */
 #endif

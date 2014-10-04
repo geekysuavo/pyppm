@@ -421,23 +421,19 @@ int ppm_prog_add_txpulse (ppm_prog *pp, unsigned int *idx,
 /* ppm_prog_add_tune: adds a tuning command at the current index.
  * updates the index to just past the command and its arguments.
  */
-int ppm_prog_add_tune (ppm_prog *pp, unsigned int *idx, double f, double L) {
+int ppm_prog_add_tune (ppm_prog *pp, unsigned int *idx, double C0) {
   /* declare required variables. */
   uint16_t arg16;
 
   /* validate the argument. */
-  if (f < 0.0 || f > 10000.0)
-    return 0;
-
-  /* validate the extra data. */
-  if (L <= 0.0)
+  if (C0 < 0.0 || C0 > 1.0)
     return 0;
 
   /* add the command. */
   pp->bytes[(*idx)++] = PPM_PULPROG_TUNE;
 
   /* compute and add the argument. */
-  arg16 = ppm_tune_optimize (f, L);
+  arg16 = ppm_tune_optimize (C0);
   pp->bytes[(*idx)++] = MSB (arg16);
   pp->bytes[(*idx)++] = LSB (arg16);
 
