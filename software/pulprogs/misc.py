@@ -15,6 +15,12 @@ def retune(f = 1000, L = 14.62e-3):
     [pyppm.END]
   ]
 
+def detune():
+  return [
+    [pyppm.TUNE, 0],
+    [pyppm.END]
+  ]
+
 def reshim(v, axis = pyppm.SHIM_Z):
   if (axis is not pyppm.SHIM_X and
       axis is not pyppm.SHIM_Y and
