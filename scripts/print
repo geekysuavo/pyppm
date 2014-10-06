@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # define default project parameters.
 prj=null
 ver=1

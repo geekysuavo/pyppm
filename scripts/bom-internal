@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# define default project parameters.
+prj=null
+ver=1
+rev=0
+
+# source the project parameter file.
+source proj
+
+# write a very loud confirmation request to the terminal, and read back a
+# response from the user.
+echo -n "*** ARE YOU SURE YOU WANT TO WIPE THE CURRENT BOM??? [yes/NO] "
+read confirmation
+
+# check if the response of the user was not precisely 'yes'.
+if [ ! "${confirmation}" == "yes" ]; then
+  # nope. avoid trashing the current board design.
+  echo "cancelling... later tater."
+  exit 0
+fi
+
+# define working variables.
+dones=""
+pages=$(ls *.sch)
+
+# remove the bom output files.
+rm -f ${prj}-bom-long.csv ${prj}-bom-short.csv
+
+# loop through the pages of the schematic.
+for page in ${pages}; do
+  # output a header for the schematic page.
+  echo "# ${page}:" >> ${prj}-bom-long.csv
+  echo "# --------------------------------------------" >> ${prj}-bom-long.csv
+
+  # get a unique list of parts from the current schematic page.
+  parts=$(grep ^refdes= ${page} | cut -f 2 -d = | sort -u)
+
+  # loop through the list of part numbers.
+  for part in ${parts}; do
+    # check if the part number has been mentioned before.
+    if [ "$(echo ${dones} | grep ${part})" == "" ]; then
+      # parse a line of text from the schematic page.
+      line=$(awk -F '=' -v part=${part} -f ../../scripts/bom.awk ${page} | \
+             sort -u)
+
+      # print a line of output to the long bill of materials.
+      echo ${line} >> ${prj}-bom-long.csv
+
+      # add the part to the mentioned list.
+      dones="${dones} ${part}"
+    fi
+  done
+
+  # print a line of spacing to the long bill of materials.
+  echo >> ${prj}-bom-long.csv
+done
+
+# part the long bill of materials for a unique list of part numbers.
+parts=$(awk -F ',' 'NF == 3 {print $3;}' ${prj}-bom-long.csv | sort -u)
+
+# loop through the list of part numbers.
+for part in ${parts}; do
+  # count the number of occurrences of the part number in the long bom.
+  count=$(awk -F ',' -v part=${part} '$3 ~ part' ${prj}-bom-long.csv | wc -l)
+
+  # print a line of output to the short bill of materials.
+  echo "\"${count}\",${part}" >> ${prj}-bom-short.csv
+done
+
+# sync the filesystem with the disks.
+sync
+

@@ -20,6 +20,14 @@ unique part numbers and their occurrence count. This is useful when ordering
 parts for a design from Digi-Key, because any given part number may occur more
 than once in different schematic sections.
 
+### bom-internal
+
+The `bom-internal` script takes bill-of-materials information embedded in the
+schematics of the current directory to generate long (per schematic page) and
+short (summarized) bill of materials CSV files. For this script to work, every
+schematic part needs to have a `partno` attribute that corresponds to its
+bill of materials line item identifier.
+
 ### build
 
 The `build` script runs any simulations in the current working directory,
