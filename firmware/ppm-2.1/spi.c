@@ -23,36 +23,18 @@
 void spi_write_dac_1x8 (uint8_t byte);
 void spi_write_dac_3x8 (uint8_t lo, uint8_t mid, uint8_t hi);
 
-/* spi_init_adc: initialize the serial peripheral interface to the ADC. */
-void spi_init_adc (void) {
-  /* disable SPI interrupts. */
-  SPCR &= ~(1 << SPIE);
-
-  /* set the SPI clock rate to GCLK/8. */
-  SPSR |= (1 << SPI2X);
-  SPCR |= (1 << SPR0);
-  SPCR &= ~(1 << SPR1);
-
-  /* set SPI falling edges as leading edges, MISO falling-edge sampling. */
-  SPCR |= (1 << CPOL);
-  SPCR &= ~(1 << CPHA);
-
-  /* set SPI data ordering to MSB first. */
-  SPCR &= ~(1 << DORD);
-
-  /* enable SPI in master mode. */
-  SPCR |= ((1 << MSTR) | (1 << SPE));
-}
-
 /* spi_init_dac: initialize the serial peripheral interface to the DAC. */
 void spi_init_dac (void) {
-  /* select the output range to +/- 5V. */
-  spi_write_dac_3x8 (SPI_DAC_REG0 | SPI_DAC_ADDRESS_AB, 0x00, 0x03);
+  /* select the output range of all dac units to +/- 5V. */
+  spi_write_dac_3x8 (SPI_DAC_REGISTER_RANGE | SPI_DAC_ADDRESS_AB, 0x00,
+                     SPI_DAC_RANGE_BI_5);
 
-  /* power up the dac outputs. */
-  spi_write_dac_3x8 (SPI_DAC_REG1, 0x00, 0x05);
+  /* power up all the dac outputs. */
+  spi_write_dac_3x8 (SPI_DAC_REGISTER_PWR, 0x00,
+                     SPI_DAC_PWR_UNIT_A |
+                     SPI_DAC_PWR_UNIT_B);
 
-  /* place the dac outputs on the ground rail. */
+  /* place all the dac outputs on the ground rail. */
   spi_write_dac (SPI_DAC_ADDRESS_AB, 0x0000);
 }
 
@@ -65,12 +47,6 @@ void spi_init_tune (void) {
 /* spi_init: initialize the ADC, DAC and switch serial peripheral interfaces.
  */
 void spi_init (void) {
-  /* wait just a bit. */
-  _delay_ms (50.0);
-
-  /* initialize the adc. */
-  spi_init_adc ();
-
   /* turn off the adc led. */
   _delay_ms (50.0);
   gpio_led_adc_off ();
@@ -129,7 +105,9 @@ void spi_write_dac (uint8_t output, uint16_t value) {
   /* program the dac register:
    * 00000 (A2) (A1) (A0)  MSB  LSB
    */
-  spi_write_dac_3x8 (output & 0x07, MSB (value), LSB (value));
+  spi_write_dac_3x8 (
+    output & (SPI_DAC_A2 | SPI_DAC_A1 | SPI_DAC_A0),
+    MSB (value), LSB (value));
 }
 
 /* spi_write_tune_1x8: writes a byte to the ADG714 switches. */
@@ -168,3 +146,4 @@ void spi_write_tune (uint16_t value) {
   /* deselect the switches. */
   gpio_tune_deselect ();
 }
+
