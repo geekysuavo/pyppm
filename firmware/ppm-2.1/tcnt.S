@@ -354,7 +354,7 @@ cmp1_end:
 ; ============================================================================
 
 ; TIMER0_COMPA_vect: interrupt service routine: timer/counter0 compare match A.
-; this subroutine should require 144 cycles @ 16.0 MHz => 9.0 us.
+; this subroutine should require 145 cycles @ 16.0 MHz => 9.0625 us.
 ; (see tcnt0_run_pulse for register assignments)
 .global TIMER0_COMPA_vect
 TIMER0_COMPA_vect:
@@ -533,17 +533,17 @@ TIMER0_COMPA_vect:
   ; deselect the spi dac. (+1 => 128)
   sbi _SFR_IO_ADDR(GPIO_DAC_PORT), GPIO_DAC_PIN_CS
 
-  ; reset r1 to zero, as it should be.
+  ; reset r1 to zero, as is expected. (+1 => 129)
   eor r1, r1
 
-  ; increment the (32-bit) overflow counter. (+5 => 133)
+  ; increment the (32-bit) overflow counter. (+5 => 134)
   ldi r26, 0x01
   add r13, r26
   adc r14, r1
   adc r15, r1
   adc r16, r1
 
-  ; check if the overflow counter has reached its target. (+6 => 139)
+  ; check if the overflow counter has reached its target. (+6 => 140)
   cp r13, r22
   cpc r14, r23
   cpc r15, r24
@@ -561,7 +561,7 @@ TIMER0_COMPA_vect:
   ldi r26, 0x01
   mov r3, r26
 
-  ; restore the status register state and return. (+5 => 144)
+  ; restore the status register state and return. (+5 => 145)
 cmp0_end:
   out _SFR_IO_ADDR(SREG), r2
   reti

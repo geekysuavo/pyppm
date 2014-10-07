@@ -227,6 +227,9 @@ void ppm_execute (void) {
         /* run the pulse synthesis command. */
         ppm_txpulse (n32, f32, a8);
 
+        /* return the transmit coil dac output to zero. */
+        spi_write_dac_a (0x0000);
+
         /* skip to the next pulse program command. */
         i_pulprog += 9;
         break;
