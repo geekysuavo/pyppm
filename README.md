@@ -5,21 +5,21 @@ An open source Earth's Field NMR Spectrometer.
 ## Introduction
 
 The PyPPM project includes a set of hardware and software designs that enable
-anyone to perform [Nuclear Magnetic Resonance] (
+anyone to perform [Nuclear Magnetic Resonance](
 http://en.wikipedia.org/wiki/Nuclear_magnetic_resonance) experiments using
 the Earth's magnetic field.
 
 There are two principal hardware designs in the PyPPM project. The first,
-PyPPMv1, is a [Proton Precession Magnetometer] (
+PyPPMv1, is a [Proton Precession Magnetometer](
 http://en.wikipedia.org/wiki/Proton_magnetometer) that uses the
-[non-adiabatic] (http://en.wikipedia.org/wiki/Adiabatic_theorem) method of
+[non-adiabatic](http://en.wikipedia.org/wiki/Adiabatic_theorem) method of
 Russell Varian and Martin Packard to observe NMR signals at Earth's field:
 
 > M. Packard, R. Varian, _Free Nuclear Induction in the Earth's Magnetic
 > Field_, Physical Review, 1954, 93(4): 941.
 
 The second hardware design, PyPPMv2, is more appropriately termed an [Earth's
-Field NMR Spectrometer] (http://en.wikipedia.org/wiki/Earth's_field_NMR), as
+Field NMR Spectrometer](http://en.wikipedia.org/wiki/Earth's_field_NMR), as
 it adds the adiabatic polarization features required to perform more complex
 NMR experiments.
 
@@ -46,49 +46,52 @@ and any other devices that use megaAVR microcontrollers.
 
 ### Footprints
 
-The PyPPM project uses the [gEDA PCB] (http://pcb.geda-project.org/) design
+The PyPPM project uses the [gEDA PCB](http://pcb.geda-project.org/) design
 tool for all printed circuit boards. While the gEDA footprint library is
 fairly extensive, a few custom device footprints had to be made to suit
 the more exotic/modern parts that went into PyPPM boards.
 
 ### Models
 
-The `models` directory holds all SPICE models used by simulations of PyPPM
-circuit behavior. To see the actual simulation files, look in `simulations`.
+The [models](models) directory holds all SPICE models used by simulations
+of PyPPM circuit behavior. To see the actual simulation files, look in
+[simulations](simulations).
 
 ### Notes
 
-The `notes` directory holds a few random jots of information that don't really
-fit into any of the other subdirectories, like recommended color schemes for
-Gerber rendering, _etc_. Documentation related to the PyPPM's entry into The
-Hackaday Prize will also be placed here.
+The [notes](notes) directory holds a few random jots of information that
+don't really fit into any of the other subdirectories, like recommended
+color schemes for Gerber rendering, _etc_. Documentation related to the
+PyPPM's entry into The Hackaday Prize will also be placed here.
 
 ### Scripts
 
 Miscellaneous support scripts that I wrote to make my own life easier during
-PyPPM development are co-located in the `scripts` directory.
+PyPPM development are co-located in the [scripts](scripts) directory.
 
 ### Simulations
 
-The `simulations` directory contains all SPICE simulations I've made to analyze
-the behavior of subcircuit modules in PyPPM.
+The [simulations](simulations) directory contains all SPICE simulations
+I've made to analyze the behavior of subcircuit modules in PyPPM.
 
 ### Software
 
-The `software` directory holds all software written during the course of the
-PyPPM project's development. Anything from command-line utilities to python
-modules to calculations of free induction decays is here.
+The [software](software) directory holds all software written during the
+course of the PyPPM project's development. Anything from command-line
+utilities to python modules to calculations of free induction decays
+is here.
 
 ### Symbols
 
-The `symbols` directory holds all custom [gEDA gschem] (
-http://www.geda-project.org/) schematic symbols used in the PyPPM schematics.
+The [symbols](symbols) directory holds all custom [gEDA gschem](
+http://www.geda-project.org/) schematic symbols used in the PyPPM
+schematics.
 
 ## Licensing
 
-All software in the PyPPM project is released under the [GNU GPL 3.0] (
+All software in the PyPPM project is released under the [GNU GPL 3.0](
 http://www.gnu.org/copyleft/gpl.html), and all hardware designs (PCB and case
-designs) are released under the [CC-BY-SA 2.0] (
+designs) are released under the [CC-BY-SA 2.0](
 https://creativecommons.org/licenses/by-sa/2.0/).
 
 Enjoy!
