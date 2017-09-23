@@ -195,7 +195,7 @@ signals (and thus high SNR and high field homogeneity), as it windows the
 time-domain data with a Blackman apodization function prior to computation.
 
 One final transform is available in `pyppm`, called the [Short-time Fourier
-transform] (http://en.wikipedia.org/wiki/Short-time_Fourier_transform). It
+transform](http://en.wikipedia.org/wiki/Short-time_Fourier_transform). It
 computes multiple FFT's over short time windows of the time-domain data,
 effectively creating a time-course of the frequency content in the data:
 
