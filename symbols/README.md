@@ -1,6 +1,6 @@
 # pyppm/symbols
 
-All custom [gEDA gschem] (http://www.geda-project.org/) device schematic
+All custom [gEDA gschem](http://www.geda-project.org/) device schematic
 symbols are placed in subdirectories here.
 
 ### Symbol files
