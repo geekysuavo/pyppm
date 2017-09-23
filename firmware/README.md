@@ -15,13 +15,13 @@ but all the `scb` and `ppm` firmware trees use at least some of that code.
 ### Building firmware
 
 All firmware source trees follow the same pattern of compilation and flashing.
-To compile the firmware using [AVR GCC] (http://www.nongnu.org/avr-libc/), run
+To compile the firmware using [AVR GCC](http://www.nongnu.org/avr-libc/), run
 `make`:
 
 > `make`
 
-To flash the compiled firmware onto a device with [dfu-programmer] (
-http://dfu-programmer.github.io/), use the `dfu` target:
+To flash the compiled firmware onto a device with
+[dfu-programmer](http://dfu-programmer.github.io/), use the `dfu` target:
 
 > `sudo make dfu`
 
