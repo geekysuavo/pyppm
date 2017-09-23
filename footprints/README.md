@@ -1,6 +1,6 @@
 # pyppm/footprints
 
-All custom [gEDA PCB] (http://pcb.geda-project.org/) device footprints are
+All custom [gEDA PCB](http://pcb.geda-project.org/) device footprints are
 placed in subdirectories here.
 
 ### Footprint files
