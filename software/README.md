@@ -71,7 +71,7 @@ The `solver` directory holds a few GNU Octave scripts that may be used to
 solve for the resulting Free Induction Decay (FID) signal given a set of
 polarization properties. I wrote these scripts to illustrate the effect of
 long polarization turn-off times on FID intensity, a demonstration of the
-[adiabatic theorem] (http://en.wikipedia.org/wiki/Adiabatic_theorem).
+[adiabatic theorem](http://en.wikipedia.org/wiki/Adiabatic_theorem).
 
 To run the solvers, just build:
 
