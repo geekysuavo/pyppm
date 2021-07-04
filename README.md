@@ -93,8 +93,3 @@ All software in the PyPPM project is released under the [GNU GPL 3.0](
 http://www.gnu.org/copyleft/gpl.html), and all hardware designs (PCB and case
 designs) are released under the [CC-BY-SA 2.0](
 https://creativecommons.org/licenses/by-sa/2.0/).
-
-Enjoy!
-
-*~ Brad.*
-
